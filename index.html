@@ -10,12 +10,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: He diseñado la aplicación como un "Explorador de Prompts" interactivo. En lugar de una lectura lineal, el usuario utiliza una barra de navegación con botones para filtrar por departamento. Al seleccionar un departamento, la vista se actualiza dinámicamente para mostrar: 1) Un resumen de los desafíos del departamento, 2) Un gráfico de barras que visualiza los tipos de tareas que Copilot puede realizar, y 3) Una biblioteca de "tarjetas de prompts" interactivas con botones para copiar. Esta estructura convierte el informe en una herramienta práctica, priorizando la facilidad de uso y la aplicación directa sobre la estructura del documento original. -->
-    <!-- Visualization & Content Choices: 
-        - Comparación de versiones: Presentado en tarjetas de tres columnas para una fácil comparación visual, en lugar de una tabla densa (HTML/Tailwind).
+    <!-- Application Structure Plan: He diseñado la aplicación como un "Explorador de Prompts" interactivo. En lugar de una lectura lineal, el usuario utiliza una barra de navegación con botones para filtrar por departamento. 
+		 Al seleccionar un departamento, la vista se actualiza dinámicamente para mostrar: 
+		 1) Un resumen de los desafíos del departamento, 
+		 2) Un gráfico de barras que visualiza los tipos de tareas que Copilot puede realizar,
+		 3) Una biblioteca de "tarjetas de prompts" interactivas con botones para copiar. -->
+    <!-- Visualization & Content Choices:
         - Prompts departamentales: El núcleo de la aplicación. Se muestran como tarjetas interactivas filtrables por departamento. Cada tarjeta incluye un botón "Copiar Prompt" para usabilidad inmediata (JS/HTML/Tailwind).
         - Tipos de tareas: Un gráfico de barras horizontal dinámico (Chart.js/Canvas) que se actualiza con cada departamento, proporcionando un análisis visual rápido de cómo se puede usar Copilot.
-        - Guía de implementación: Un acordeón interactivo (JS/HTML/Tailwind) para mantener la información detallada organizada y compacta.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -51,7 +53,7 @@
             height: 350px;
             max-height: 400px;
         }
-         @media (min-width: 768px) { .chart-container { height: 400px; } }
+          @media (min-width: 768px) { .chart-container { height: 400px; } }
     </style>
 </head>
 <body class="antialiased">
@@ -60,7 +62,7 @@
 
         <header class="text-center mb-12">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Explorador de Prompts de M365 Copilot</h1>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave del Banco. Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave del Banco. \n Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
         </header>
 
         <nav class="mb-12">
@@ -76,7 +78,7 @@
                 </div>
                 
                 <div class="mb-12">
-                     <h3 class="text-2xl font-semibold text-center text-gray-700 mb-4">Distribución de Tareas Asistidas por Copilot</h3>
+                    <h3 class="text-2xl font-semibold text-center text-gray-700 mb-4">Distribución de Tareas Asistidas por Copilot</h3>
                     <div class="chart-container">
                         <canvas id="departmentChart"></canvas>
                     </div>
@@ -100,8 +102,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const promptData = {
-        "Banca Minorista": {
-            title: "Banca Minorista",
+        "Banca Particulares": {
+            title: "Banca Particulares",
             challenge: "Afronta la evolución de las expectativas del cliente, la necesidad de hiperpersonalización y la reducción de la fricción entre canales, mejorando la eficiencia operativa y la satisfacción del cliente.",
             chartData: { 'Comunicación': 3, 'Análisis': 1, 'Alineación': 1 },
             prompts: [
@@ -143,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             prompts: [
                 { task: "Análisis de Actualizaciones", useCase: "Resumir nuevas leyes y sus implicaciones.", prompt: "Utilizando el aviso de FinCEN adjunto, resume los cambios clave en los requisitos de informes de AML y redacta un memorándum interno para las partes interesadas relevantes que describa las acciones inmediatas requeridas.", type: "Análisis" },
                 { task: "Redacción de Políticas", useCase: "Crear directrices internas y procedimientos de cumplimiento.", prompt: "En Word, redacta una nueva política de privacidad de datos para la información del cliente, asegurando el cumplimiento de GDPR y las regulaciones bancarias locales, basándote en los documentos de política existentes en SharePoint.", type: "Redacción" },
-                { task: "Preparación de Auditorías", useCase: "Compilar documentación y resúmenes para auditorías.", prompt: "En Teams, resume las decisiones clave y los elementos de acción de nuestra última reunión de revisión de auditoría interna, centrándote en las áreas de incumplimiento, y asigna tareas de seguimiento a los equipos responsables.", type: "Monitoreo" },
+                { task: "Preparación de Auditorías", useCase: "Compilar documentación y resúmenes para auditorías.", prompt: "En Teams, resume las decisiones clave y los elementos de acción de nuestra última reunión de revisión de auditoría interna, centrándose en las áreas de incumplimiento, y asigna tareas de seguimiento a los equipos responsables.", type: "Monitoreo" },
                 { task: "Formación en Cumplimiento", useCase: "Desarrollar materiales de formación sobre nuevas regulaciones.", prompt: "En PowerPoint, crea una presentación de formación sobre la Ley de Secreto Bancario (BSA) para nuevos empleados, destacando los requisitos clave de informes y las señales de alerta de lavado de dinero.", type: "Formación" },
                 { task: "Monitoreo de Comunicaciones", useCase: "Identificar riesgos de cumplimiento en las comunicaciones internas.", prompt: "En Outlook, resume los puntos clave de este hilo de correo electrónico sobre un nuevo producto de inversión, identificando cualquier declaración que pueda requerir una revisión de cumplimiento adicional.", type: "Monitoreo" }
             ]
@@ -193,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { task: "Análisis Regulatorio", useCase: "Identificar cambios regulatorios y sus implicaciones.", prompt: "En Outlook, resume las implicaciones legales clave de la reciente sentencia judicial sobre la notificación de violación de datos, y redacta un correo electrónico al Jefe de Cumplimiento describiendo las actualizaciones de política necesarias.", type: "Análisis" },
                 { task: "Apoyo en Litigios", useCase: "Extraer argumentos clave y sugerir contraargumentos.", prompt: "En Teams, resume los argumentos clave presentados por la parte contraria en el caso XYZ contra el Banco, basándote en la transcripción de la reunión, y sugiere tres contraargumentos para que nuestro equipo legal los considere.", type: "Litigios" },
                 { task: "Debida Diligencia Legal", useCase: "Compilar y resumir información relevante para la debida diligencia.", prompt: "En Word, compila un resumen ejecutivo de los hallazgos de la debida diligencia legal para la adquisición propuesta de la empresa ABC, centrándote en los riesgos regulatorios y contractuales.", type: "Redacción" },
-                { task: "Redacción de Memorandos", useCase: "Borrar borradores iniciales de memorandos o asesoramiento legal.", prompt: "En Word, redacta un memorando legal interno sobre las implicaciones de la nueva ley de protección al consumidor para nuestros productos de banca minorista, incluyendo un análisis de riesgos y recomendaciones de cumplimiento.", type: "Redacción" }
+                { task: "Redacción de Memorandos", useCase: "Borrar borradores iniciales de memorandos o asesoramiento legal.", prompt: "En Word, redacta un memorando legal interno sobre las implicaciones de la nueva ley de protección al consumidor para nuestros productos de banca Particulares, incluyendo un análisis de riesgos y recomendaciones de cumplimiento.", type: "Redacción" }
             ]
         },
         "Finanzas": {
@@ -225,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let chart;
 
+    // Función para inicializar el gráfico de barras
     function initChart() {
         const ctx = document.getElementById('departmentChart').getContext('2d');
         chart = new Chart(ctx, {
@@ -252,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }]
             },
             options: {
-                indexAxis: 'y',
+                indexAxis: 'y', // Hace el gráfico de barras horizontal
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
@@ -286,13 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Función para actualizar la vista del departamento
     function updateView(departmentKey) {
         const data = promptData[departmentKey];
-        if (!data) return;
+        if (!data) return; // Si no hay datos para la clave, salir
 
+        // Actualiza el título y el desafío del departamento
         departmentTitle.textContent = data.title;
         departmentChallenge.textContent = data.challenge;
         
+        // Limpia y renderiza las tarjetas de prompts
         promptLibrary.innerHTML = '';
         data.prompts.forEach(p => {
             const card = document.createElement('div');
@@ -311,84 +317,119 @@ document.addEventListener('DOMContentLoaded', () => {
             promptLibrary.appendChild(card);
         });
 
+        // Añade event listeners a los botones de copiar
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const promptText = event.target.closest('.prompt-card').querySelector('.font-mono').textContent.replace(/“|”/g, '');
+                // Utiliza document.execCommand para copiar al portapapeles debido a restricciones de iframe
+                const textarea = document.createElement('textarea');
+                textarea.value = promptText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    button.textContent = '¡Copiado!';
+                    setTimeout(() => {
+                        button.textContent = 'Copiar Prompt';
+                    }, 2000);
+                } catch (err) {
+                    console.error('No se pudo copiar el texto: ', err);
+                }
+                document.body.removeChild(textarea);
+            });
+        });
+
+        // Actualiza la clase 'active' para los botones de navegación
         document.querySelectorAll('.nav-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.key === departmentKey);
         });
         
+        // Actualiza los datos del gráfico
         const chartData = data.chartData || {};
         chart.data.labels = Object.keys(chartData);
         chart.data.datasets[0].data = Object.values(chartData);
         chart.update();
     }
     
+    // Función para configurar el acordeón de guía de implementación
     function setupAccordion() {
+        // Asegúrate de que el contenedor del acordeón existe
+        if (!accordionContainer) {
+            const newAccordionContainer = document.createElement('div');
+            newAccordionContainer.id = 'accordion-container';
+            newAccordionContainer.className = "mt-16"; // Clases Tailwind para margen superior
+            document.querySelector('main').appendChild(newAccordionContainer);
+            // Actualiza la referencia si se creó
+            accordionContainer = document.getElementById('accordion-container');
+        } else {
+            accordionContainer.innerHTML = ''; // Limpiar si ya existía
+        }
+
+        const accordionTitle = document.createElement('h3');
+        accordionTitle.className = "text-2xl font-semibold text-center text-gray-700 mb-6";
+        accordionTitle.textContent = "Guía de Implementación y Mejores Prácticas";
+        accordionContainer.appendChild(accordionTitle);
+
         implementationData.forEach((item, index) => {
             const accordionItem = document.createElement('div');
-            accordionItem.className = 'border border-gray-200 rounded-lg overflow-hidden';
+            accordionItem.className = "border border-gray-200 rounded-lg mb-2";
             accordionItem.innerHTML = `
-                <button class="accordion-header w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none transition" data-index="${index}">
-                    <h3 class="text-lg font-semibold text-gray-700">${item.title}</h3>
+                <button class="accordion-header flex justify-between items-center w-full p-4 text-left font-semibold text-lg text-gray-700 bg-white hover:bg-gray-50 rounded-lg focus:outline-none">
+                    ${item.title}
+                    <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <div class="accordion-content p-4 bg-white border-t border-gray-200 hidden">
-                    <p class="text-gray-600">${item.content}</p>
+                <div class="accordion-content p-4 text-gray-600 hidden">
+                    <p>${item.content}</p>
                 </div>
             `;
             accordionContainer.appendChild(accordionItem);
         });
-        
-        accordionContainer.addEventListener('click', (e) => {
-            const header = e.target.closest('.accordion-header');
-            if(header) {
-                const content = header.nextElementSibling;
-                const wasActive = header.classList.contains('active');
-                
-                document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('active'));
-                document.querySelectorAll('.accordion-content').forEach(c => c.classList.add('hidden'));
 
-                if(!wasActive) {
-                    header.classList.add('active');
-                    content.classList.remove('hidden');
-                }
-            }
+        // Añade event listeners para el acordeón
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const svg = header.querySelector('svg');
+
+                // Cierra otros acordeones abiertos
+                document.querySelectorAll('.accordion-content').forEach(otherContent => {
+                    if (otherContent !== content && !otherContent.classList.contains('hidden')) {
+                        otherContent.classList.add('hidden');
+                        otherContent.previousElementSibling.classList.remove('active');
+                        otherContent.previousElementSibling.querySelector('svg').classList.remove('rotate-180');
+                    }
+                });
+
+                // Abre o cierra el acordeón clicado
+                content.classList.toggle('hidden');
+                header.classList.toggle('active');
+                svg.classList.toggle('rotate-180');
+            });
         });
     }
 
-    Object.keys(promptData).forEach(key => {
-        const button = document.createElement('button');
-        button.className = "nav-button text-sm md:text-base font-medium py-2 px-4 rounded-full bg-white shadow-sm hover:bg-gray-100";
-        button.textContent = key;
-        button.dataset.key = key;
-        departmentNav.appendChild(button);
-    });
 
-    departmentNav.addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            updateView(e.target.dataset.key);
-        }
-    });
-    
-    promptLibrary.addEventListener('click', (e) => {
-        if (e.target.classList.contains('copy-btn')) {
-            const card = e.target.closest('.prompt-card');
-            const promptText = card.querySelector('p.font-mono').textContent.slice(1, -1);
-            navigator.clipboard.writeText(promptText).then(() => {
-                e.target.textContent = '¡Copiado!';
-                setTimeout(() => {
-                    e.target.textContent = 'Copiar Prompt';
-                }, 2000);
-            }).catch(err => {
-                console.error('Error al copiar: ', err);
-                e.target.textContent = 'Error al copiar';
-            });
-        }
-    });
+    // --- Inicialización al cargar el DOM ---
 
+    // Inicializa el gráfico
     initChart();
+
+    // Genera los botones de navegación de departamento
+    for (const key in promptData) {
+        const button = document.createElement('button');
+        button.className = "nav-button bg-white text-gray-700 font-semibold py-2 px-4 rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
+        button.dataset.key = key;
+        button.textContent = promptData[key].title;
+        button.addEventListener('click', () => updateView(key));
+        departmentNav.appendChild(button);
+    }
+    
+    // Configura el acordeón de implementación
     setupAccordion();
-    updateView(Object.keys(promptData)[0]);
+
+    // Selecciona "Banca Particulares" por defecto al cargar la página
+    updateView('Banca Particulares');
 });
 </script>
-
 </body>
 </html>
-
