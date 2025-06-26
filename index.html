@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Prompts de Copilot para Banca</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: He diseñado la aplicación como un "Explorador de Prompts" interactivo. En lugar de una lectura lineal, el usuario utiliza una barra de navegación con botones para filtrar por departamento. Al seleccionar un departamento, la vista se actualiza dinámicamente para mostrar: 1) Un resumen de los desafíos del departamento, 2) Un gráfico de barras que visualiza los tipos de tareas que Copilot puede realizar, y 3) Una biblioteca de "tarjetas de prompts" interactivas con botones para copiar. Esta estructura convierte el informe en una herramienta práctica, priorizando la facilidad de uso y la aplicación directa sobre la estructura del documento original. -->
+    <!-- Visualization & Content Choices: 
+        - Comparación de versiones: Presentado en tarjetas de tres columnas para una fácil comparación visual, en lugar de una tabla densa (HTML/Tailwind).
+        - Prompts departamentales: El núcleo de la aplicación. Se muestran como tarjetas interactivas filtrables por departamento. Cada tarjeta incluye un botón "Copiar Prompt" para usabilidad inmediata (JS/HTML/Tailwind).
+        - Tipos de tareas: Un gráfico de barras horizontal dinámico (Chart.js/Canvas) que se actualiza con cada departamento, proporcionando un análisis visual rápido de cómo se puede usar Copilot.
+        - Guía de implementación: Un acordeón interactivo (JS/HTML/Tailwind) para mantener la información detallada organizada y compacta.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF6;
+            color: #1a1a1a;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #2563EB;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+        }
+        .prompt-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .prompt-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .accordion-header.active {
+            background-color: #EFF6FF;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+         @media (min-width: 768px) { .chart-container { height: 400px; } }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Explorador de Prompts de M365 Copilot</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave del Banco. Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
+        </header>
+
+        <nav class="mb-12">
+            <div id="department-nav" class="flex flex-wrap justify-center gap-2 md:gap-3">
+            </div>
+        </nav>
+
+        <main id="content-area">
+            <section id="department-view" class="mb-16 min-h-[600px]">
+                <div id="department-intro" class="mb-10 p-6 bg-white rounded-xl shadow-sm text-center">
+                    <h2 id="department-title" class="text-3xl font-bold text-blue-600 mb-2"></h2>
+                    <p id="department-challenge" class="text-gray-700"></p>
+                </div>
+                
+                <div class="mb-12">
+                     <h3 class="text-2xl font-semibold text-center text-gray-700 mb-4">Distribución de Tareas Asistidas por Copilot</h3>
+                    <div class="chart-container">
+                        <canvas id="departmentChart"></canvas>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-semibold text-center text-gray-700 mb-6">Biblioteca de Prompts</h3>
+                    <div id="prompt-library" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-16 pt-8 border-t border-gray-200">
+            <p class="text-gray-500">Aplicación interactiva del "Diccionario de Prompts para Microsoft 365 Copilot de la Escuela de Prompts".</p>
+        </footer>
+
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const promptData = {
+        "Banca Minorista": {
+            title: "Banca Minorista",
+            challenge: "Afronta la evolución de las expectativas del cliente, la necesidad de hiperpersonalización y la reducción de la fricción entre canales, mejorando la eficiencia operativa y la satisfacción del cliente.",
+            chartData: { 'Comunicación': 3, 'Análisis': 1, 'Alineación': 1 },
+            prompts: [
+                { task: "Consulta de Servicio al Cliente", useCase: "Resumir el historial de interacciones del cliente para una atención personalizada.", prompt: "En Teams, resume los puntos clave de la reciente reunión de comentarios de clientes sobre solicitudes de préstamos y marca los elementos de acción para el equipo de banca digital.", type: "Comunicación" },
+                { task: "Análisis de Datos de Ventas", useCase: "Identificar tendencias de ventas y áreas de crecimiento.", prompt: "En Excel, analiza los datos de apertura de nuevas cuentas del tercer trimestre por segmento demográfico e identifica las 3 principales áreas de crecimiento. Luego, redacta un informe resumido en Word para los gerentes regionales.", type: "Análisis" },
+                { task: "Comunicación Personalizada", useCase: "Redactar ofertas o seguimientos personalizados para clientes.", prompt: "En Outlook, redacta un correo electrónico personalizado a [Nombre del Cliente] haciendo un seguimiento de su reciente consulta hipotecaria, destacando los beneficios de nuestra opción de tasa fija según su perfil en el sistema CRM.", type: "Comunicación" },
+                { task: "Alineación de Equipo", useCase: "Recapitular reuniones y asignar elementos de acción para la mejora del servicio.", prompt: "En Teams, resume los puntos clave de la reunión de estrategia de servicio al cliente de la semana pasada, destacando las decisiones tomadas sobre la reducción del tiempo de espera y los próximos pasos para el equipo de atención al cliente.", type: "Alineación" },
+                { task: "Generación de Contenido", useCase: "Crear borradores de folletos o contenido web para nuevos productos.", prompt: "En Word, redacta un borrador de folleto digital para nuestro nuevo producto de cuenta de ahorros de alto rendimiento, destacando las características clave y los beneficios para el cliente, utilizando un tono claro y atractivo.", type: "Comunicación" }
+            ]
+        },
+        "Banca Corporativa": {
+            title: "Banca Corporativa",
+            challenge: "Gestiona transacciones complejas, grandes riesgos y estrictos requisitos regulatorios, integrando el cumplimiento en la tecnología y mejorando la ciberseguridad estratégica.",
+            chartData: { 'Redacción': 2, 'Análisis': 1, 'Regulación': 1, 'Preparación': 1 },
+            prompts: [
+                 { task: "Redacción de Propuestas", useCase: "Estructurar propuestas complejas para clientes.", prompt: "En Word, redacta una propuesta integral para un cliente para una facilidad de préstamo sindicado, incorporando los términos clave de la hoja de términos adjunta y destacando nuestras ventajas competitivas. Asegura un tono profesional y persuasivo.", type: "Redacción" },
+                 { task: "Análisis de Mercado", useCase: "Resumir tendencias de la industria y su impacto.", prompt: "En Teams, resume los hallazgos clave de la reciente reunión de perspectivas económicas e identifica los posibles impactos en nuestra cartera de préstamos corporativos. Redacta un resumen ejecutivo en Outlook para el Jefe de Banca Corporativa.", type: "Análisis" },
+                 { task: "Revisión Regulatoria", useCase: "Automatizar verificaciones de cumplimiento y ajustes de sistemas.", prompt: "Utilizando la actualización regulatoria adjunta, identifica todos los cambios relacionados con la presentación de informes de transacciones transfronterizas para clientes corporativos y redacta un memorándum que resuma los ajustes de sistema requeridos para el departamento de TI.", type: "Regulación" },
+                 { task: "Preparación de Reuniones", useCase: "Compilar información relevante y puntos de discusión.", prompt: "En Outlook, resume los puntos clave de la correspondencia por correo electrónico con [Nombre del Cliente/Empresa] durante los últimos seis meses y sugiere tres preguntas clave para discutir en nuestra próxima reunión.", type: "Preparación" },
+                 { task: "Generación de Contratos", useCase: "Borrar cláusulas contractuales estándar o adendas.", prompt: "En Word, redacta una cláusula de confidencialidad para un nuevo acuerdo de servicio, asegurando que cumpla con nuestras políticas internas y la legislación de protección de datos.", type: "Redacción" }
+            ]
+        },
+        "Gestión de Riesgos": {
+            title: "Gestión de Riesgos",
+            challenge: "Navega por requisitos regulatorios complejos, mejora la calidad de los datos y adáptate rápidamente a las condiciones del mercado para una identificación y mitigación proactiva de riesgos.",
+            chartData: { 'Análisis': 2, 'Informes': 1, 'Monitoreo': 1, 'Auditoría': 1 },
+            prompts: [
+                { task: "Evaluación de Riesgo de Crédito", useCase: "Resumir datos de cartera de préstamos e identificar tendencias de riesgo.", prompt: "En Excel, analiza los datos de impago de préstamos adjuntos de los últimos dos trimestres e identifica las 5 principales industrias con riesgo de crédito creciente. Genera un resumen conciso de tus hallazgos.", type: "Análisis" },
+                { task: "Monitoreo de Tendencias", useCase: "Identificar la volatilidad del mercado y sus implicaciones.", prompt: "En Teams, resume la discusión de la última reunión del comité de riesgo de mercado, destacando las principales preocupaciones sobre las fluctuaciones de las tasas de interés y los elementos de acción para el equipo de inversión.", type: "Monitoreo" },
+                { task: "Informes de Riesgo Operacional", useCase: "Redactar informes de incidentes y evaluaciones de vulnerabilidades.", prompt: "En Word, redacta un informe de evaluación de riesgo operacional para el nuevo proceso de incorporación digital, centrándote en los posibles puntos de error humano y las vulnerabilidades del sistema, haciendo referencia a nuestras directrices operacionales internas.", type: "Informes" },
+                { task: "Preparación para Auditorías", useCase: "Compilar y resumir información para auditorías regulatorias.", prompt: "En Word, compila un resumen de todos los controles de ciberseguridad implementados en el último año, basándote en los informes de auditoría internos y los documentos de política de TI, para la próxima auditoría de cumplimiento.", type: "Auditoría" },
+                { task: "Análisis de Riesgo de Liquidez", useCase: "Evaluar la disponibilidad de fondos y los escenarios de estrés.", prompt: "En Excel, simula un escenario de estrés de retirada masiva de depósitos y calcula el impacto en nuestra liquidez en 30, 60 y 90 días, basándote en los datos de balance adjuntos. Luego, resume los hallazgos clave en un correo electrónico para el equipo de tesorería.", type: "Análisis" }
+            ]
+        },
+        "Cumplimiento": {
+            title: "Cumplimiento",
+            challenge: "Navega por paisajes regulatorios complejos y cambiantes con agilidad, gestionando los desafíos de recursos y asegurando el cumplimiento transfronterizo y de privacidad de datos.",
+            chartData: { 'Análisis': 1, 'Redacción': 1, 'Formación': 1, 'Monitoreo': 2 },
+            prompts: [
+                { task: "Análisis de Actualizaciones", useCase: "Resumir nuevas leyes y sus implicaciones.", prompt: "Utilizando el aviso de FinCEN adjunto, resume los cambios clave en los requisitos de informes de AML y redacta un memorándum interno para las partes interesadas relevantes que describa las acciones inmediatas requeridas.", type: "Análisis" },
+                { task: "Redacción de Políticas", useCase: "Crear directrices internas y procedimientos de cumplimiento.", prompt: "En Word, redacta una nueva política de privacidad de datos para la información del cliente, asegurando el cumplimiento de GDPR y las regulaciones bancarias locales, basándote en los documentos de política existentes en SharePoint.", type: "Redacción" },
+                { task: "Preparación de Auditorías", useCase: "Compilar documentación y resúmenes para auditorías.", prompt: "En Teams, resume las decisiones clave y los elementos de acción de nuestra última reunión de revisión de auditoría interna, centrándote en las áreas de incumplimiento, y asigna tareas de seguimiento a los equipos responsables.", type: "Monitoreo" },
+                { task: "Formación en Cumplimiento", useCase: "Desarrollar materiales de formación sobre nuevas regulaciones.", prompt: "En PowerPoint, crea una presentación de formación sobre la Ley de Secreto Bancario (BSA) para nuevos empleados, destacando los requisitos clave de informes y las señales de alerta de lavado de dinero.", type: "Formación" },
+                { task: "Monitoreo de Comunicaciones", useCase: "Identificar riesgos de cumplimiento en las comunicaciones internas.", prompt: "En Outlook, resume los puntos clave de este hilo de correo electrónico sobre un nuevo producto de inversión, identificando cualquier declaración que pueda requerir una revisión de cumplimiento adicional.", type: "Monitoreo" }
+            ]
+        },
+        "Recursos Humanos": {
+            title: "Recursos Humanos",
+            challenge: "Optimiza la gestión del talento, reduce las altas tasas de rotación y mejora el bienestar de los empleados automatizando tareas administrativas y enfocándose en iniciativas estratégicas.",
+            chartData: { 'Redacción': 2, 'Análisis': 2, 'Comunicación': 1 },
+            prompts: [
+                { task: "Reclutamiento", useCase: "Redactar descripciones de puestos de trabajo y materiales de contratación.", prompt: "En Word, redacta una descripción de puesto para una posición de 'Analista de Crédito Senior', enfatizando las habilidades analíticas y el conocimiento regulatorio, basándote en el perfil de puesto adjunto y los puntos de referencia de la industria.", type: "Redacción" },
+                { task: "Compromiso del Empleado", useCase: "Resumir comentarios de encuestas y sugerir iniciativas.", prompt: "En Teams, resume los temas clave y las preocupaciones recurrentes de los resultados de la reciente encuesta de compromiso de los empleados, y sugiere tres iniciativas accionables para mejorar el equilibrio entre la vida laboral y personal.", type: "Análisis" },
+                { task: "Capacitación y Desarrollo", useCase: "Crear materiales de capacitación y rutas de aprendizaje personalizadas.", prompt: "En PowerPoint, crea una presentación de diapositivas para una nueva sesión de incorporación de empleados, incluyendo secciones sobre la cultura de la empresa, políticas clave y beneficios, extrayendo información del manual de RRHH.", type: "Redacción" },
+                { task: "Comunicación Interna", useCase: "Redactar anuncios de políticas o iniciativas de bienestar.", prompt: "En Outlook, redacta un correo electrónico a todos los empleados anunciando nuestra nueva iniciativa de bienestar, destacando los recursos disponibles para el apoyo a la salud mental y física.", type: "Comunicación" },
+                { task: "Análisis de Datos de RRHH", useCase: "Identificar tendencias en la rotación o el agotamiento de los empleados.", prompt: "En Excel, analiza los datos de rotación de empleados del último año por departamento y grupo de edad, e identifica los patrones o anomalías que puedan indicar problemas de agotamiento.", type: "Análisis" }
+            ]
+        },
+        "TI": {
+            title: "Tecnología de la Información",
+            challenge: "Moderniza la infraestructura, mejora la ciberseguridad y gestiona sistemas heredados, garantizando al mismo tiempo el cumplimiento normativo y la privacidad de los datos.",
+            chartData: { 'Documentación': 1, 'Seguridad': 2, 'Planificación': 1, 'Análisis': 1 },
+            prompts: [
+                { task: "Respuesta a Incidentes", useCase: "Resumir informes de incidentes y acciones recomendadas.", prompt: "En Teams, resume los hallazgos clave y las acciones recomendadas de la reciente reunión de investigación de incidentes de ciberseguridad, y asigna tareas de seguimiento al equipo de seguridad de la red.", type: "Seguridad" },
+                { task: "Documentación del Sistema", useCase: "Generar documentación técnica para sistemas y APIs.", prompt: "En Word, genera documentación técnica detallada para la nueva integración de API, incluyendo puntos finales, métodos de autenticación y manejo de errores, basándote en las especificaciones de diseño adjuntas.", type: "Documentación" },
+                { task: "Políticas de Seguridad", useCase: "Redactar directrices y protocolos de seguridad.", prompt: "En Outlook, redacta un correo electrónico a todos los empleados recordándoles la política actualizada de concientización sobre phishing, destacando los cambios clave y las mejores prácticas para identificar correos electrónicos sospechosos.", type: "Seguridad" },
+                { task: "Planificación de Proyectos", useCase: "Resumir el estado del proyecto para la modernización de sistemas.", prompt: "En Teams, resume el estado actual del proyecto de modernización del sistema de préstamos heredado, destacando los principales obstáculos y los próximos hitos para el equipo de desarrollo.", type: "Planificación" },
+                { task: "Análisis de Registros", useCase: "Identificar anomalías en los registros del sistema.", prompt: "En Excel, analiza los registros de acceso del servidor del último mes e identifica cualquier patrón de acceso inusual que pueda indicar una posible brecha de seguridad. Genera un resumen de los hallazgos.", type: "Análisis" }
+            ]
+        },
+        "Marketing": {
+            title: "Marketing",
+            challenge: "Impulsa la interacción y la coherencia de la marca, superando el estricto cumplimiento normativo y la mercantilización de productos para crear campañas efectivas y diferenciadas.",
+            chartData: { 'Creación de Contenido': 2, 'Análisis': 2, 'Estrategia': 1 },
+            prompts: [
+                { task: "Creación de Contenido", useCase: "Redactar textos publicitarios y materiales de campaña.", prompt: "En Word, redacta tres variaciones de un titular y un texto para una campaña publicitaria digital que promocione nuestro nuevo fondo de inversión sostenible, dirigido a millennials conscientes del medio ambiente. Asegura un tono profesional e inspirador, e incluye una clara llamada a la acción.", type: "Creación de Contenido" },
+                { task: "Investigación de Mercado", useCase: "Analizar datos de investigación y generar presentaciones.", prompt: "En Excel, analiza los datos de investigación de mercado adjuntos sobre las preferencias bancarias de la Generación Z e identifica las ideas clave para el desarrollo de productos. Luego, redacta una presentación resumida en PowerPoint para el equipo de producto.", type: "Análisis" },
+                { task: "Mensajes de Marca", useCase: "Garantizar la coherencia de la marca en todas las comunicaciones.", prompt: "En Outlook, redacta un correo electrónico a nuestros clientes de alto patrimonio existente anunciando un nuevo servicio de gestión de patrimonio, manteniendo nuestra voz de marca premium establecida y destacando los beneficios exclusivos.", type: "Creación de Contenido" },
+                { task: "Análisis de la Competencia", useCase: "Resumir estrategias de la competencia y puntos clave.", prompt: "En Teams, resume los puntos clave de la última revisión de la competencia, centrándote en sus estrategias de marketing digital para productos de inversión, y sugiere áreas donde podemos diferenciarnos.", type: "Análisis" },
+                { task: "Generación de Ideas", useCase: "Lluvia de ideas para nuevas campañas o contenido.", prompt: "En Copilot Chat, genera cinco ideas innovadoras para una campaña de redes sociales que promueva la educación financiera entre los jóvenes, utilizando un lenguaje atractivo y relevante.", type: "Estrategia" }
+            ]
+        },
+        "Legal": {
+            title: "Legal",
+            challenge: "Optimiza la debida diligencia, la gestión de contratos y la respuesta a un panorama regulatorio en evolución, manejando una gran carga de trabajo con recursos limitados.",
+            chartData: { 'Revisión': 1, 'Análisis': 1, 'Litigios': 1, 'Redacción': 2 },
+            prompts: [
+                { task: "Revisión de Contratos", useCase: "Resumir términos contractuales e identificar desviaciones.", prompt: "En Word, revisa el borrador adjunto del acuerdo con el proveedor e identifica cualquier cláusula que se desvíe de nuestros términos legales estándar, específicamente en lo que respecta a la responsabilidad y la privacidad de los datos. Sugiere revisiones para alinearlo con nuestra plantilla.", type: "Revisión" },
+                { task: "Análisis Regulatorio", useCase: "Identificar cambios regulatorios y sus implicaciones.", prompt: "En Outlook, resume las implicaciones legales clave de la reciente sentencia judicial sobre la notificación de violación de datos, y redacta un correo electrónico al Jefe de Cumplimiento describiendo las actualizaciones de política necesarias.", type: "Análisis" },
+                { task: "Apoyo en Litigios", useCase: "Extraer argumentos clave y sugerir contraargumentos.", prompt: "En Teams, resume los argumentos clave presentados por la parte contraria en el caso XYZ contra el Banco, basándote en la transcripción de la reunión, y sugiere tres contraargumentos para que nuestro equipo legal los considere.", type: "Litigios" },
+                { task: "Debida Diligencia Legal", useCase: "Compilar y resumir información relevante para la debida diligencia.", prompt: "En Word, compila un resumen ejecutivo de los hallazgos de la debida diligencia legal para la adquisición propuesta de la empresa ABC, centrándote en los riesgos regulatorios y contractuales.", type: "Redacción" },
+                { task: "Redacción de Memorandos", useCase: "Borrar borradores iniciales de memorandos o asesoramiento legal.", prompt: "En Word, redacta un memorando legal interno sobre las implicaciones de la nueva ley de protección al consumidor para nuestros productos de banca minorista, incluyendo un análisis de riesgos y recomendaciones de cumplimiento.", type: "Redacción" }
+            ]
+        },
+        "Finanzas": {
+            title: "Finanzas",
+            challenge: "Mejora la previsión financiera, satisface las demandas de informes en tiempo real y evoluciona hacia un rol más estratégico a medida que se automatizan las tareas tradicionales.",
+            chartData: { 'Informes': 1, 'Previsión': 1, 'Análisis': 2, 'Presentaciones': 1 },
+            prompts: [
+                { task: "Informes Financieros", useCase: "Generar informes trimestrales y resúmenes de datos.", prompt: "En Excel, analiza los estados financieros del cuarto trimestre adjuntos e identifica los principales impulsores del crecimiento de los ingresos y la reducción de costos. Genera un resumen de estas observaciones.", type: "Informes" },
+                { task: "Presupuesto y Previsión", useCase: "Crear resúmenes de presupuesto y proyecciones financieras.", prompt: "En Word, redacta un resumen ejecutivo de la propuesta de presupuesto anual, destacando las asignaciones clave para inversiones en tecnología y el ROI proyectado, basándote en la hoja de cálculo de presupuesto adjunta.", type: "Previsión" },
+                { task: "Gestión del Flujo de Caja", useCase: "Analizar tendencias de liquidez e identificar posibles déficits.", prompt: "En Teams, resume la discusión de la última reunión de revisión del flujo de caja, identificando cualquier posible déficit en los próximos seis meses y enumerando los elementos de acción para que el equipo de tesorería mitigue el riesgo.", type: "Análisis" },
+                { task: "Análisis de Inversiones", useCase: "Evaluar el rendimiento de la cartera y las oportunidades.", prompt: "En Excel, calcula el rendimiento anualizado de nuestra cartera de inversiones durante los últimos tres años y compara con los puntos de referencia de la industria. Luego, resume los hallazgos clave para el comité de inversiones.", type: "Análisis" },
+                { task: "Preparación de Presentaciones", useCase: "Crear diapositivas para reuniones de inversores o de la junta.", prompt: "En PowerPoint, crea una presentación para la próxima reunión de la junta directiva, destacando los resultados financieros del último trimestre, las perspectivas para el próximo año y las principales iniciativas estratégicas.", type: "Presentaciones" }
+            ]
+        }
+    };
+    
+    const implementationData = [
+        { title: "Gobernanza de Datos y Seguridad", content: "Implementar controles de acceso granulares y políticas claras para la privacidad y seguridad de los datos. Aprovechar las características de protección de datos empresariales de Copilot para garantizar el cumplimiento de las regulaciones bancarias y la soberanía de los datos." },
+        { title: "Capacitación y Gestión del Cambio", content: "Desarrollar programas de capacitación basados en roles, incluyendo talleres prácticos de ingeniería de prompts. Fomentar una cultura de 'primero en IA' donde los empleados identifiquen proactivamente oportunidades para automatizar y optimizar su trabajo." },
+        { title: "Medición del Impacto y el ROI", content: "Establecer métricas claras que vayan más allá de la productividad individual. Vincular el uso de Copilot con KPIs de negocio como la retención de clientes, los ciclos de lanzamiento de productos y las puntuaciones de cumplimiento para demostrar un ROI estratégico." },
+        { title: "Aprovechamiento de Copilot Studio", content: "Explorar la creación de agentes de IA personalizados para flujos de trabajo bancarios únicos y propietarios, como la originación de préstamos o la detección de fraude. Esto permite una automatización más profunda y una ventaja competitiva difícil de replicar." }
+    ];
+
+    const departmentNav = document.getElementById('department-nav');
+    const departmentTitle = document.getElementById('department-title');
+    const departmentChallenge = document.getElementById('department-challenge');
+    const promptLibrary = document.getElementById('prompt-library');
+    const accordionContainer = document.getElementById('accordion-container');
+    
+    let chart;
+
+    function initChart() {
+        const ctx = document.getElementById('departmentChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Número de Prompts por Tipo de Tarea',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(139, 92, 246, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(139, 92, 246, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.x !== null) {
+                                    label += context.parsed.x;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateView(departmentKey) {
+        const data = promptData[departmentKey];
+        if (!data) return;
+
+        departmentTitle.textContent = data.title;
+        departmentChallenge.textContent = data.challenge;
+        
+        promptLibrary.innerHTML = '';
+        data.prompts.forEach(p => {
+            const card = document.createElement('div');
+            card.className = "prompt-card bg-white rounded-xl shadow-md p-6 flex flex-col";
+            card.innerHTML = `
+                <div class="flex-grow">
+                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full mb-2">${p.type}</span>
+                    <h4 class="text-lg font-bold text-gray-800 mb-1">${p.task}</h4>
+                    <p class="text-sm text-gray-600 mb-4">${p.useCase}</p>
+                    <p class="text-sm bg-gray-50 p-3 rounded-md text-gray-700 font-mono">“${p.prompt}”</p>
+                </div>
+                <button class="copy-btn mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-300">
+                    Copiar Prompt
+                </button>
+            `;
+            promptLibrary.appendChild(card);
+        });
+
+        document.querySelectorAll('.nav-button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.key === departmentKey);
+        });
+        
+        const chartData = data.chartData || {};
+        chart.data.labels = Object.keys(chartData);
+        chart.data.datasets[0].data = Object.values(chartData);
+        chart.update();
+    }
+    
+    function setupAccordion() {
+        implementationData.forEach((item, index) => {
+            const accordionItem = document.createElement('div');
+            accordionItem.className = 'border border-gray-200 rounded-lg overflow-hidden';
+            accordionItem.innerHTML = `
+                <button class="accordion-header w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none transition" data-index="${index}">
+                    <h3 class="text-lg font-semibold text-gray-700">${item.title}</h3>
+                </button>
+                <div class="accordion-content p-4 bg-white border-t border-gray-200 hidden">
+                    <p class="text-gray-600">${item.content}</p>
+                </div>
+            `;
+            accordionContainer.appendChild(accordionItem);
+        });
+        
+        accordionContainer.addEventListener('click', (e) => {
+            const header = e.target.closest('.accordion-header');
+            if(header) {
+                const content = header.nextElementSibling;
+                const wasActive = header.classList.contains('active');
+                
+                document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('active'));
+                document.querySelectorAll('.accordion-content').forEach(c => c.classList.add('hidden'));
+
+                if(!wasActive) {
+                    header.classList.add('active');
+                    content.classList.remove('hidden');
+                }
+            }
+        });
+    }
+
+    Object.keys(promptData).forEach(key => {
+        const button = document.createElement('button');
+        button.className = "nav-button text-sm md:text-base font-medium py-2 px-4 rounded-full bg-white shadow-sm hover:bg-gray-100";
+        button.textContent = key;
+        button.dataset.key = key;
+        departmentNav.appendChild(button);
+    });
+
+    departmentNav.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            updateView(e.target.dataset.key);
+        }
+    });
+    
+    promptLibrary.addEventListener('click', (e) => {
+        if (e.target.classList.contains('copy-btn')) {
+            const card = e.target.closest('.prompt-card');
+            const promptText = card.querySelector('p.font-mono').textContent.slice(1, -1);
+            navigator.clipboard.writeText(promptText).then(() => {
+                e.target.textContent = '¡Copiado!';
+                setTimeout(() => {
+                    e.target.textContent = 'Copiar Prompt';
+                }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar: ', err);
+                e.target.textContent = 'Error al copiar';
+            });
+        }
+    });
+
+    initChart();
+    setupAccordion();
+    updateView(Object.keys(promptData)[0]);
+});
+</script>
+
+</body>
+</html>
+
