@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explorador de Prompts de Copilot para Banca</title>
+    <title>Explorador de Prompts de M365 Copilot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,7 +60,7 @@
 
         <header class="text-center mb-12">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Explorador de Prompts de M365 Copilot</h1>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave de una entidad bancaria. Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave del Banco. Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
         </header>
 
         <nav class="mb-12">
@@ -91,7 +91,7 @@
         </main>
 
         <footer class="text-center mt-16 pt-8 border-t border-gray-200">
-            <p class="text-gray-500">Aplicación interactiva generada a partir del "Inventario de Prompts para Microsoft 365 Copilot en Entidades Bancarias".</p>
+            <p class="text-gray-500">Aplicación interactiva generada a partir del Diccionario de prompts de la Escuela de Prompts.</p>
         </footer>
 
     </div>
@@ -100,8 +100,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const promptData = {
-        "Banca Minorista": {
-            title: "Banca Minorista",
+        "Banca Particulares": {
+            title: "Banca Particulares",
             challenge: "Afronta la evolución de las expectativas del cliente, la necesidad de hiperpersonalización y la reducción de la fricción entre canales, mejorando la eficiencia operativa y la satisfacción del cliente.",
             chartData: { 'Comunicación': 3, 'Análisis': 1, 'Alineación': 1 },
             prompts: [
@@ -385,7 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initChart();
     setupAccordion();
-    updateView(Object.keys(promptData)[0]);
+    //updateView(Object.keys(promptData)[0]);
+	// Selecciona "Banca Particulares" por defecto al cargar la página
+    updateView('Banca Particulares');
 });
 </script>
 
