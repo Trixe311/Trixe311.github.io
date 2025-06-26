@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v2Explorador de Prompts de Copilot para Banca</title>
+    <title>Explorador de Prompts de Copilot M365 para Banca</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: He diseñado la aplicación como un "Explorador de Prompts" interactivo. En lugar de una lectura lineal, el usuario utiliza una barra de navegación con botones para filtrar por departamento. Al seleccionar un departamento, la vista se actualiza dinámicamente para mostrar: 1) Un resumen de los desafíos del departamento, 2) Un gráfico de barras que visualiza los tipos de tareas que Copilot puede realizar, y 3) Una biblioteca de "tarjetas de prompts" interactivas con botones para copiar. Esta estructura convierte el informe en una herramienta práctica, priorizando la facilidad de uso y la aplicación directa sobre la estructura del documento original. -->
+    <!-- Application Structure Plan: He diseñado la aplicación como un "Explorador de Prompts" interactivo. En lugar de una lectura lineal, el usuario utiliza una barra de navegación con botones para filtrar por departamento. 
+	Al seleccionar un departamento, la vista se actualiza dinámicamente para mostrar: 
+	1) Un resumen de los desafíos del departamento
+	2) Un gráfico de barras que visualiza los tipos de tareas que Copilot puede realizar
+	3) Una biblioteca de "tarjetas de prompts" interactivas con botones para copiar. -->
     <!-- Visualization & Content Choices: 
-        - Comparación de versiones: Presentado en tarjetas de tres columnas para una fácil comparación visual, en lugar de una tabla densa (HTML/Tailwind).
         - Prompts departamentales: El núcleo de la aplicación. Se muestran como tarjetas interactivas filtrables por departamento. Cada tarjeta incluye un botón "Copiar Prompt" para usabilidad inmediata (JS/HTML/Tailwind).
         - Tipos de tareas: Un gráfico de barras horizontal dinámico (Chart.js/Canvas) que se actualiza con cada departamento, proporcionando un análisis visual rápido de cómo se puede usar Copilot.
-        - Guía de implementación: Un acordeón interactivo (JS/HTML/Tailwind) para mantener la información detallada organizada y compacta.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -60,7 +62,7 @@
 
         <header class="text-center mb-12">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Explorador de Prompts de M365 Copilot</h1>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave de una entidad bancaria. Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave del Banco. Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
         </header>
 
         <nav class="mb-12">
@@ -88,62 +90,10 @@
                     </div>
                 </div>
             </section>
-            
-            <section id="comparison-view" class="py-16 bg-gray-50 rounded-2xl">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-800">Comparativa de Versiones de Copilot</h2>
-                    <p class="text-lg text-gray-600 mt-2">Entiende las diferencias clave para una implementación estratégica.</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <h3 class="text-2xl font-bold text-gray-700 mb-4">Copilot (Chat)</h3>
-                        <p class="text-sm text-gray-500 mb-4">Gratuito | Uso General</p>
-                        <ul class="space-y-3 text-gray-600">
-                            <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Basado en conocimiento web (GPT-4o).</li>
-                            <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Protección de datos empresariales.</li>
-                            <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Carga de archivos para análisis.</li>
-                            <li class="flex items-start"><span class="mr-2 text-red-500">✘</span> No se integra con apps de M365 (Word, Excel).</li>
-                            <li class="flex items-start"><span class="mr-2 text-red-500">✘</span> No accede a datos de la organización (Graph).</li>
-                        </ul>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                        <h3 class="text-2xl font-bold text-gray-700 mb-4">Copilot Pro</h3>
-                        <p class="text-sm text-gray-500 mb-4">Individual | ~$20/mes</p>
-                        <ul class="space-y-3 text-gray-600">
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Acceso preferencial a modelos de IA.</li>
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Integración con Word, Excel, Outlook, etc.</li>
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Copilot GPT Builder para personalización.</li>
-                           <li class="flex items-start"><span class="mr-2 text-red-500">✘</span> No se integra con Microsoft Teams.</li>
-                           <li class="flex items-start"><span class="mr-2 text-red-500">✘</span> No accede a datos de la organización (Graph).</li>
-                        </ul>
-                    </div>
-                    <div class="bg-white p-8 rounded-xl shadow-lg border-2 border-blue-500">
-                        <h3 class="text-2xl font-bold text-blue-600 mb-4">Microsoft 365 Copilot</h3>
-                        <p class="text-sm text-gray-500 mb-4">Empresarial | ~$30/mes</p>
-                        <ul class="space-y-3 text-gray-600">
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> **Accede a datos de la organización (Microsoft Graph).**</li>
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Integración completa con todo M365, incluido **Teams**.</li>
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> **Copilot Studio** para crear agentes y flujos de trabajo personalizados.</li>
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Seguridad y cumplimiento de nivel empresarial (GDPR).</li>
-                           <li class="flex items-start"><span class="mr-2 text-green-500">✔</span> Resume reuniones, correos y chats internos.</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-            
-            <section id="implementation-view" class="py-16">
-                 <div class="text-center mb-12">
-                    <h2 class="text-3xl font-bold text-gray-800">Implementación Estratégica</h2>
-                    <p class="text-lg text-gray-600 mt-2">Claves para una adopción exitosa en un entorno bancario.</p>
-                </div>
-                <div id="accordion-container" class="max-w-4xl mx-auto space-y-4">
-                </div>
-            </section>
-
         </main>
 
         <footer class="text-center mt-16 pt-8 border-t border-gray-200">
-            <p class="text-gray-500">Aplicación interactiva generada a partir del "Inventario de Prompts para Microsoft 365 Copilot en Entidades Bancarias".</p>
+            <p class="text-gray-500">Aplicación interactiva generada a partir del "Diccionario de Prompts para Microsoft 365 Copilot de la Escuela de Prompts".</p>
         </footer>
 
     </div>
@@ -152,8 +102,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const promptData = {
-        "Banca Minorista": {
-            title: "Banca Minorista",
+        "Banca Particulares": {
+            title: "Banca Particulares",
             challenge: "Afronta la evolución de las expectativas del cliente, la necesidad de hiperpersonalización y la reducción de la fricción entre canales, mejorando la eficiencia operativa y la satisfacción del cliente.",
             chartData: { 'Comunicación': 3, 'Análisis': 1, 'Alineación': 1 },
             prompts: [
@@ -245,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { task: "Análisis Regulatorio", useCase: "Identificar cambios regulatorios y sus implicaciones.", prompt: "En Outlook, resume las implicaciones legales clave de la reciente sentencia judicial sobre la notificación de violación de datos, y redacta un correo electrónico al Jefe de Cumplimiento describiendo las actualizaciones de política necesarias.", type: "Análisis" },
                 { task: "Apoyo en Litigios", useCase: "Extraer argumentos clave y sugerir contraargumentos.", prompt: "En Teams, resume los argumentos clave presentados por la parte contraria en el caso XYZ contra el Banco, basándote en la transcripción de la reunión, y sugiere tres contraargumentos para que nuestro equipo legal los considere.", type: "Litigios" },
                 { task: "Debida Diligencia Legal", useCase: "Compilar y resumir información relevante para la debida diligencia.", prompt: "En Word, compila un resumen ejecutivo de los hallazgos de la debida diligencia legal para la adquisición propuesta de la empresa ABC, centrándote en los riesgos regulatorios y contractuales.", type: "Redacción" },
-                { task: "Redacción de Memorandos", useCase: "Borrar borradores iniciales de memorandos o asesoramiento legal.", prompt: "En Word, redacta un memorando legal interno sobre las implicaciones de la nueva ley de protección al consumidor para nuestros productos de banca minorista, incluyendo un análisis de riesgos y recomendaciones de cumplimiento.", type: "Redacción" }
+                { task: "Redacción de Memorandos", useCase: "Borrar borradores iniciales de memorandos o asesoramiento legal.", prompt: "En Word, redacta un memorando legal interno sobre las implicaciones de la nueva ley de protección al consumidor para nuestros productos de banca Particulares, incluyendo un análisis de riesgos y recomendaciones de cumplimiento.", type: "Redacción" }
             ]
         },
         "Finanzas": {
@@ -438,8 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initChart();
     setupAccordion();
     //updateView(Object.keys(promptData)[0]);
-	// Selecciona "Banca Minorista" por defecto al cargar la página
-    updateView('Banca Minorista');
+	// Selecciona "Banca Particulares" por defecto al cargar la página
+	updateView('Banca Particulares');
 });
 </script>
 
