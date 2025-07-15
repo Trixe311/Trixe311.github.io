@@ -1,449 +1,657 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang='es' class='scroll-smooth'>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explorador de Prompts de Copilot M365</title>
-	<!-- Favicon de la página -->
-    <link rel="icon" href="https://raw.githubusercontent.com/Trixe311/Trixe311.github.io/refs/heads/main/LogoIcon.png" type="image/png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals -->
-    <!-- Application Structure Plan: Se ha diseñado la aplicación como un "Explorador de Prompts" interactivo. En lugar de una lectura lineal, el usuario utiliza una barra de navegación con botones para filtrar por departamento. Al seleccionar un departamento, la vista se actualiza dinámicamente para mostrar: 1) Un resumen de los desafíos del departamento, 2) Un gráfico de barras que visualiza los tipos de tareas que Copilot puede realizar, y 3) Una biblioteca de "tarjetas de prompts" interactivas con botones para copiar.  -->
-    <!-- Visualization & Content Choices:
-        - Prompts departamentales: El núcleo de la aplicación. Se muestran como tarjetas interactivas filtrables por departamento. Cada tarjeta incluye un botón "Copiar Prompt" para usabilidad inmediata (JS/HTML/Tailwind).
-        - Tipos de tareas: Un gráfico de barras horizontal dinámico (Chart.js/Canvas) que se actualiza con cada departamento, proporcionando un análisis visual rápido de cómo se puede usar Copilot.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Propuesta Sistema Multiagente para Speech Analytics</title>
+    <script src='https://cdn.tailwindcss.com'></script>
+    <script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
+    <link rel='preconnect' href='https://fonts.googleapis.com'>
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #FDFBF6;
-            color: #1a1a1a;
+            background-color: #f8f7f4;
+            color: #4a4a4a;
         }
-        .nav-button {
-            transition: all 0.3s ease;
-        }
-        .nav-button.active {
-            background-color: #2563EB;
-            color: white;
-            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
-        }
-        .prompt-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .prompt-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .accordion-header.active {
-            background-color: #EFF6FF;
-        }
+        .text-accent { color: #005f73;
+ }
+        .bg-accent { background-color: #005f73;
+ }
+        .border-accent { border-color: #005f73;
+ }
+        .bg-secondary { background-color: #e9d8a6;
+ }
+        .text-secondary { color: #9b2226;
+ }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+ }
+        .nav-link {
+            transition: color 0.3s;
+ }
+        .nav-link:hover {
+            color: #005f73;
+ }
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            height: 350px;
-            max-height: 400px;
+            height: 300px;
+            max-height: 40vh;
+ }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+ }
         }
-          @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .use-case-button.active {
+            background-color: #005f73;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+ }
+        /* Estilos para la simulación de flujo */
+        .simulation-step {
+            background-color: #f0f0f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 1.5rem;
+            margin-bottom: 0;
+            transform: translateY(15px);
+            transition: all 0.6s ease-in-out;
+        }
+        .simulation-step.active {
+            opacity: 1;
+            max-height: 1000px;
+            padding: 1.5rem;
+            margin-bottom: 0.75rem;
+            transform: translateY(0);
+            background-color: #e6f7f7;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+ }
+
+        /* Styles for Tabs */
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: #4a4a4a;
+            background-color: #f0f0f0;
+            border-radius: 0.5rem 0.5rem 0 0;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .tab-button:hover {
+            background-color: #e0e0e0;
+ }
+        .tab-button.active {
+            color: #005f73;
+            background-color: white;
+            border-bottom: 3px solid #005f73;
+            box-shadow: 0 -2px 5px -2px rgba(0,0,0,0.1);
+ }
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+ }
+        .tab-content.active {
+            display: block;
+ }
     </style>
 </head>
-<body class="antialiased">
+<body class='antialiased'>
 
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <header class='bg-white/80 backdrop-blur-md sticky top-0 z-40 w-full border-b border-gray-200'>
+        <div class='container mx-auto px-4 sm:px-6 lg:px-8'>
+            <div class='flex items-center justify-between h-16'>
+                <div class='flex items-center'>
+                    <span class='text-xl font-bold text-accent'>🤖 MAS-Explorer</span>
+            
+     </div>
+                <nav class='hidden md:flex space-x-8'>
+                    <a href='#arquitectura' class='nav-link text-gray-600 font-medium'>Arquitectura</a>
+                    <a href='#casos-de-uso' class='nav-link text-gray-600 font-medium'>Casos de uso</a>
+                </nav>
+           
+  </div>
+        </div>
+    </header>
 
-        <header class="text-center mb-12">
-			<img src="https://raw.githubusercontent.com/Trixe311/Trixe311.github.io/refs/heads/main/LogoPagina.png" alt="Logo del Equipo" class="mx-auto mb-6 rounded-md">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Explorador de Prompts de M365 Copilot</h1>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Una guía interactiva para aprovechar la IA en los departamentos clave del Banco. Navega, descubre y copia prompts para optimizar tus tareas diarias.</p>
-        </header>
-
-        <nav class="mb-12">
-            <div id="department-nav" class="flex flex-wrap justify-center gap-2 md:gap-3">
+    <main>
+        <section class='py-20 text-center bg-white'>
+            <div class='container mx-auto px-4 sm:px-6 lg:px-8'>
+                <h1 class='text-4xl md:text-5xl font-extrabold tracking-tight text-gray-800'>
+                    Explora los <span class='text-accent'>Casos de Uso</span> del Sistema Multiagente
+      
+           </h1>
+                <p class='mt-4 max-w-2xl mx-auto text-lg text-gray-600'>
+                    Descubre cómo nuestro sistema multiagente transforma el análisis de Speech Analytics en diferentes escenarios
+                </p>
             </div>
-        </nav>
+        
+ </section>
 
-        <main id="content-area">
-            <section id="department-view" class="mb-16 min-h-[600px]">
-                <div id="department-intro" class="mb-10 p-6 bg-white rounded-xl shadow-sm text-center">
-                    <h2 id="department-title" class="text-3xl font-bold text-blue-600 mb-2"></h2>
-                    <p id="department-challenge" class="text-gray-700"></p>
+        <section id='arquitectura' class='py-20'>
+            <div class='container mx-auto px-4 sm:px-6 lg:px-8'>
+                <div class='text-center mb-12'>
+                    <h2 class='text-3xl font-bold text-gray-800'>Arquitectura del Sistema</h2>
+                    <p class='mt-2 text-gray-600'>El sistema se compone de agentes especializados que colaboran para procesar datos y generar insights.</p>
                 </div>
+
+                <div class='max-w-4xl mx-auto p-8 card'>
+                    <div class='relative'>
+                           <div class='grid grid-cols-1 md:grid-cols-3 gap-6 items-center'>
+     
+                           <div class='text-center col-span-1 md:col-span-3'>
+                                    <div class='font-semibold text-lg mb-4'> Fuentes de Datos </div>
+                            
+         <div class='flex justify-center space-x-4'>
+                                        <div class='p-4 bg-gray-100 rounded-lg'>🗃️ Oracle</div>
+                                        <div class='p-4 bg-gray-100 rounded-lg'>❄️ Snowflake</div>
+ 
+                                    </div>
+                               </div>
+                                
+  
+                              <div class='text-center col-span-1 md:col-span-3 text-3xl text-accent'>↓</div>
+
+                               <div class='md:col-start-2 md:col-span-1 text-center p-4 bg-secondary rounded-lg shadow-lg z-10'>
+                           
+          <h3 class='font-bold text-secondary'>Agente Coordinador</h3>
+                                    <span class='text-2xl'>⚙️</span>
+                                    <p class='text-sm text-gray-700'>Orquesta y delega tareas</p>
+          
+                      </div>
+                                
+                               <div class='col-span-1 md:col-span-3 mt-6'>
+             
+                        <h4 class='font-semibold text-center mb-4'>Agentes Especializados (Pasa el ratón por encima para ver detalles)</h4>
+                                    <div id='agent-grid' class='flex justify-center items-center gap-4 flex-wrap'>
+                       
+                  </div>
+                               </div>
+                           </div>
+                    </div>
+     
+            </div>
+            </div>
+        </section>
+
+        <section class='py-20' id='casos-de-uso'>
+            <div class='container mx-auto px-4 sm:px-6 lg:px-8'>
+                <div class='text-center mb-12'>
+                    <h2 class='text-3xl font-bold text-gray-800'>Casos de Uso</h2>
+                    <p class='mt-2 text-gray-600'>Selecciona una pestaña para explorar el flujo de trabajo de cada caso de uso</p>
+                </div>
+
+                <div class='max-w-5xl mx-auto'>
+                    <div class='flex justify-center mb-4 gap-2'>
+     
+                    <button class='tab-button active' data-tab-target='patrones'>Detección de patrones</button>
+                        <button class='tab-button' data-tab-target='kpis'>Generación de informes de KPIs</button>
+                        <button class='tab-button' data-tab-target='calidad-datos'>Control de calidad y detección de anomalías</button>
+                        <button class='tab-button' data-tab-target='nuevas-metricas'>Definición y cálculo de nuevas métricas</button>
+                        </div>
+
+                    <div id='patrones' class='tab-content active'>
+ 
+                        <p class='mb-6'>Este caso de uso demuestra cómo el sistema trabaja para identificar aumentos o anomalías significativas en los motivos de las llamadas, permitiendo una reacción rápida a las tendencias emergentes.</p>
+                        <div class='mb-8 text-center'>
+                       
+      <h4 class='font-semibold text-gray-700 mb-3'>Agentes Involucrados</h4>
+                            <div class='flex justify-center items-center gap-4 flex-wrap'>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                    
+                 <span class='text-2xl'>💬</span>
+                                    <span class='font-medium text-sm text-gray-800'>Soporte a Usuarios</span>
+                                </div>
+          
+                       <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>⚙️</span>
+                                   
+  <span class='font-medium text-sm text-gray-800'>Coordinador</span>
+                                </div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                          
+           <span class='text-2xl'>🔍</span>
+                                    <span class='font-medium text-sm text-gray-800'>Detección de Patrones</span>
+                                </div>
                 
-                <div class="mb-12">
-                    <h3 class="text-2xl font-semibold text-center text-gray-700 mb-4">Distribución de Tareas Asistidas por Copilot</h3>
-                    <div class="chart-container">
-                        <canvas id="departmentChart"></canvas>
+             </div>
+                        </div>
+                        <div class='text-center mb-12'>
+                            <button class='start-simulation-btn mt-6 bg-accent text-white font-bold py-2 px-6 rounded-full hover:bg-teal-800 
+ transition duration-300' data-target-tab='patrones'>
+                                ▶️ Iniciar Simulación
+                            </button>
+                        </div>
+            
+             <div class='simulation-container grid grid-cols-1 md:grid-cols-3 gap-8 items-start'>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>1.
+ Consulta de Usuario</h3><p class='text-sm text-gray-700'>Un usuario solicita un análisis de tendencias: 'Necesito saber qué categorías de llamada aumentaron en junio respecto a mayo'</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>2.
+ Agente de Soporte</h3><p class='text-sm text-gray-700'>Recibe e interpreta la consulta. La envía al Coordinador</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>3.
+ Agente Coordinador</h3><p class='text-sm text-gray-700'>Delega la tarea al agente de Detección de Patrones</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>4.
+ Agente de Detección de Patrones</h3><p class='text-sm text-gray-700 mb-4'>Analiza los datos y encuentra aumentos significativos en algunas categorías</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>5.
+ Agente de Detección de Patrones</h3><p class='text-sm text-gray-700 mb-4'>Recopila y envía los resultados al Coordinador</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>6.
+ Agente Coordinador</h3><p class='text-sm text-gray-700 mb-4'>Consolida la información y la envía de vuelta al Agente de Soporte</p></div>
+                            <div class='simulation-step md:col-span-3 border-l-4 border-accent'><h3 class='font-bold mb-2'>7.
+ Respuesta Final</h3><p class='text-sm text-gray-700 mb-4'>El Agente de Soporte formula la respuesta consolidada:</p><p class='mt-2 text-sm font-semibold text-accent'>En comparación con los resultados de mayo, en junio aumentaron significativamente las llamadas relacionadas con 'Problemas con banca online' (+35%) y 'Consultas sobre hipotecas' (+22%).</p><p> </p><div class='chart-container h-64 max-h-[550px]'><canvas class='simulation-chart'></canvas></div></div>
+                        </div>
                     </div>
-                </div>
 
-                <div>
-                    <h3 class="text-2xl font-semibold text-center text-gray-700 mb-6">Biblioteca de Prompts</h3>
-                    <div id="prompt-library" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+         <div id='kpis' class='tab-content'>
+                        <p class='mb-6'>Este caso de uso ilustra cómo el sistema puede generar informes de indicadores clave de rendimiento (KPIs) de manera automática, adaptándose a las necesidades de diferentes perfiles de usuario sin intervención manual</p>
+                        <div class='mb-8 text-center'>
+        
+                     <h4 class='font-semibold text-gray-700 mb-3'>Agentes Involucrados</h4>
+                            <div class='flex justify-center items-center gap-4 flex-wrap'>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+     
+                                <span class='text-2xl'>💬</span>
+                                    <span class='font-medium text-sm text-gray-800'>Soporte a Usuarios</span>
+                           
+								</div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>⚙️</span>
+                    
+                 <span class='font-medium text-sm text-gray-800'>Coordinador</span>
+                                </div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+           
+                          <span class='text-2xl'>📊</span>
+                                    <span class='font-medium text-sm text-gray-800'>KPIs de Speech</span>
+                                </div>
+ 
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>🏆</span>
+                          
+           <span class='font-medium text-sm text-gray-800'>Ranking de Agentes</span>
+                                </div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>📄</span>
+                                    <span class='font-medium text-sm text-gray-800'>Informes Proveedores</span>
+                                </div>
+                                </div>
+                        </div>
+ 
+                        <div class='text-center mb-12'>
+                            <button class='start-simulation-btn mt-6 bg-accent text-white font-bold py-2 px-6 rounded-full hover:bg-teal-800 transition duration-400' data-target-tab='kpis'>
+                                ▶️ Iniciar Simulación
+ 
+                            </button>
+                        </div>
+                        <div class='simulation-container grid grid-cols-1 md:grid-cols-3 gap-8 items-start'>
+                   
+          <div class='simulation-step'><h3 class='font-bold mb-2'>1.
+ Consulta de Usuario</h3><p class='text-sm text-gray-700'>Un analista solicita un informe de KPIs: 'Quiero conocer los principales motivos de llamada y el rendimiento de los agentes de mayo y junio'</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>2.
+ Agente de Soporte</h3><p class='text-sm text-gray-700'>Recibe e interpreta la consulta. La envía al Coordinador</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>3.
+ Agente Coordinador</h3><p class='text-sm text-gray-700'>El Coordinador delega al Agente de KPIs de Speech y al Agente de Ranking de Agentes</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>4.
+ Agente KPIs Speech y Agente Ranking</h3><p class='text-sm text-gray-700 mb-4'>El primero obtiene datos de motivos;
+ el segundo lanza las consultas sobre el rendimiento de los agentes</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>5.
+ Agente KPIs Speech y Agente Ranking</h3><p class='text-sm text-gray-700 mb-4'>Ambos agentes envían sus resultados al Coordinador</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>6.
+ Agente Coordinador</h3><p class='text-sm text-gray-700 mb-4'>Consolida la información y la envía de vuelta al Agente de Soporte</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>7. Activación de Informe (Opcional)</h3><p class='text-sm text-gray-700 mb-4'>Si el Agente de Ranking de Agentes detecta una disminución de los KPIs de performance de los agentes, activa el Agente de Informes a Proveedores para que elabore un informe con estos datos y lo envíe para su análisis.</p></div>
+                            <div class='simulation-step md:col-span-3 border-l-4 border-accent'><h3 class='font-bold mb-2'>8.
+ Respuesta Final (Dashboard)</h3><p class='text-sm text-gray-700 mb-4'>El Agente de Soporte genera un informe unificado y lo presenta al analista en formato de dashboard interactivo</p><p class='mt-2 text-sm font-semibold text-accent'>Selecciona el mes que quieres consultar:</p>
+                                <div class='mt-4'>
+                                    
+ <div class='max-w-md mx-auto mb-8'>
+                                        <label for='month-filter' class='block text-sm font-medium text-gray-700'>Filtrar por Mes</label>
+                                        <select id='month-filter' name='month-filter' class='mt-1 block w-full pl-3 pr-10 py-2 text-base 
+ border-gray-300 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm rounded-md'>
+                                            <option value='mayo'>Mayo</option>
+                                            <option value='junio'>Junio</option>
+     
+                                    </select>
+                                    </div>
+                             
+        <div class='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+                                        <div class='p-6 card'>
+                                            <h3 class='text-lg font-semibold 
+ mb-4 text-center'>Motivos de Llamada</h3>
+                                            <div class='chart-container'>
+                                                <canvas id='motivosChart'></canvas>
+   
+                                          </div>
+                                        </div>
+                   
+                      <div class='p-6 card'>
+                                            <h3 class='text-lg font-semibold mb-4 text-center'>Rendimiento de Agentes (% Resolución)</h3>
+                         
+                    <div class='chart-container'>
+                                                <canvas id='rendimientoChart'></canvas>
+                               
+              </div>
+                                        </div>
+                                    </div>
+           
+                      </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </section>
-        </main>
 
-        <footer class="text-center mt-16 pt-8 border-t border-gray-200">
-            <p class="text-gray-500">Aplicación interactiva del "Diccionario de Prompts para Microsoft 365 Copilot de la Escuela de Prompts".</p>
-        </footer>
+                    <div id='calidad-datos' class='tab-content'>
+                        <p class='mb-6'>Este caso de uso demuestra cómo el sistema monitoriza la calidad de los datos de Speech Analytics, identificando y alertando proactivamente sobre posibles errores en la transcripción, categorización o la integridad general de los datos.</p>
+                        <div class='mb-8 text-center'>
+                            <h4 class='font-semibold text-gray-700 mb-3'>Agentes Involucrados</h4>
+                            <div class='flex justify-center items-center gap-4 flex-wrap'>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>🛡️</span>
+                                    <span class='font-medium text-sm text-gray-800'>Calidad de Datos</span>
+                                </div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>⚙️</span>
+                                    <span class='font-medium text-sm text-gray-800'>Coordinador</span>
+                                </div>
+								<div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                     <span class='text-2xl'>💬</span>
+                                    <span class='font-medium text-sm text-gray-800'>Soporte a Usuarios</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='text-center mb-12'>
+                            <button class='start-simulation-btn mt-6 bg-accent text-white font-bold py-2 px-6 rounded-full hover:bg-teal-800 transition duration-300' data-target-tab='calidad-datos'>
+                                ▶️ Iniciar Simulación
+                            </button>
+                        </div>
+                        <div class='simulation-container grid grid-cols-1 md:grid-cols-3 gap-8 items-start'>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>1. Agente de Calidad de Datos</h3><p class='text-sm text-gray-700'>Monitorea continuamente los flujos de datos del sistema</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>2. Agente de Calidad de Datos</h3><p class='text-sm text-gray-700'>Detecta una anomalía (ej:. volumen bajo de categorizaciones o errores de transcripción)</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>3. Agente de Calidad de Datos</h3><p class='text-sm text-gray-700'>El Agente de Calidad de Datos informa al Coordinador.</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>4. Agente Coordinador</h3><p class='text-sm text-gray-700'>Valida el informe, genera una alerta crítica y activa al Agente de Soporte</p></div>
+                            <div class='simulation-step md:col-span-3 border-l-4 border-accent'><h3 class='font-bold mb-2'>5. Agente de Soporte</h3><p class='text-sm text-gray-700'>La alerta es enviada a los analistas para revisión y corrección</p><p class='mt-2 text-sm font-semibold text-red-600'>🔴 ALERTA CRÍTICA: Anomalia detectada en los datos de categorización. Volumen de categorizaciones por debajo del umbral esperado.</p></div>
+                        </div>
+                    </div>
+                    <div id='nuevas-metricas' class='tab-content'>
+                        <p class='mb-6'>Este caso de uso permite a los analistas definir y probar nuevas métricas o KPIs de forma ágil, sin necesidad de desarrollo de software, facilitando la experimentación y la adaptación a nuevas necesidades de negocio.</p>
+                        <div class='mb-8 text-center'>
+                            <h4 class='font-semibold text-gray-700 mb-3'>Agentes Involucrados</h4>
+                            <div class='flex justify-center items-center gap-4 flex-wrap'>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>💬</span>
+                                    <span class='font-medium text-sm text-gray-800'>Soporte a Usuarios</span>
+                                </div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>⚙️</span>
+                                    <span class='font-medium text-sm text-gray-800'>Coordinador</span>
+                                </div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>💡</span>
+                                    <span class='font-medium text-sm text-gray-800'>Nuevas Métricas</span>
+                                </div>
+                                <div class='flex items-center gap-2 p-2 bg-gray-100 rounded-lg'>
+                                    <span class='text-2xl'>📊</span>
+                                    <span class='font-medium text-sm text-gray-800'>KPIs de Speech</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='text-center mb-12'>
+                            <button class='start-simulation-btn mt-6 bg-accent text-white font-bold py-2 px-6 rounded-full hover:bg-teal-800 transition duration-300' data-target-tab='nuevas-metricas'>
+                                ▶️ Iniciar Simulación
+                            </button>
+                        </div>
+                        <div class='simulation-container grid grid-cols-1 md:grid-cols-3 gap-8 items-start'>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>1. Definición de Métrica</h3><p class='text-sm text-gray-700'>Un analista define una nueva métrica (por ejemplo, 'Tasa de Resolución en Primera Llamada') a través de una interfaz simplificada</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>2. Agente de Soporte</h3><p class='text-sm text-gray-700'>La solicitud es enviada al Agente de Soporte, que lo reenvía al Coordinador</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>3. Agente Coordinador</h3><p class='text-sm text-gray-700'>Activa el Agente de Nuevas Métricas para proceder al cálculo</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>4. Agente de Nuevas Métricas</h3><p class='text-sm text-gray-700'>Interpreta la definición, accede a los datos brutos, calcula el valor solicitado y lo manda de vuelta al Coordinador</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>5. Agente Coordinador</h3><p class='text-sm text-gray-700'>Reenvía el resultado al Agente de Soporte y activa el proceso de incorporación permanente</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>6. Agente de Soporte</h3><p class='text-sm text-gray-700'>Presenta el valor calculado de la nueva métrica al analista y valida si quiere incorporarla siempre en futuros análisis</p><p class='mt-2 text-sm font-semibold text-accent'>Valor de 'Tasa de Resolución en Primera Llamada': 85%</p><p class='mt-2 text-sm font-semibold text-gray-700'>¿Desea incorporar esta métrica permanentemente?</p></div>
+                            <div class='simulation-step'><h3 class='font-bold mb-2'>7. Agente de Soporte</h3><p class='text-sm text-gray-700'>Envía la validación al Coordinador para incorporar la nueva métrica</p></div>
+                            <div class='simulation-step md:col-span-3 border-l-4 border-accent'><h3 class='font-bold mb-2'>8. Agente Coordinador</h3><p class='text-sm text-gray-700'>Activa el Agente de KPIs y el de Nuevas Métricas para incorporar el dato de manera permanente al sistema</p><p class='mt-2 text-sm font-semibold text-green-600'>✅ Métrica 'Tasa de Resolución en Primera Llamada' incorporada permanentemente al sistema.</p></div>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+        </section>
+    </main>
 
-    </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-
-    const promptData = {
-        "Banca Particulares": {
-            title: "Banca Particulares",
-            challenge: "Afronta la evolución de las expectativas del cliente, la necesidad de hiperpersonalización y la reducción de la fricción entre canales, mejorando la eficiencia operativa y la satisfacción del cliente.",
-            chartData: { 'Comunicación': 3, 'Análisis': 1, 'Alineación': 1 },
-            prompts: [
-                { task: "Consulta de Servicio al Cliente", useCase: "Resumir el historial de interacciones del cliente para una atención personalizada.", prompt: "En Teams, resume los puntos clave de la reciente reunión de comentarios de clientes sobre solicitudes de préstamos y marca los elementos de acción para el equipo de banca digital.", type: "Comunicación" },
-                { task: "Análisis de Datos de Ventas", useCase: "Identificar tendencias de ventas y áreas de crecimiento.", prompt: "En Excel, analiza los datos de apertura de nuevas cuentas del tercer trimestre por segmento demográfico e identifica las 3 principales áreas de crecimiento. Luego, redacta un informe resumido en Word para los gerentes regionales.", type: "Análisis" },
-                { task: "Comunicación Personalizada", useCase: "Redactar ofertas o seguimientos personalizados para clientes.", prompt: "En Outlook, redacta un correo electrónico personalizado a [Nombre del Cliente] haciendo un seguimiento de su reciente consulta hipotecaria, destacando los beneficios de nuestra opción de tasa fija según su perfil en el sistema CRM.", type: "Comunicación" },
-                { task: "Alineación de Equipo", useCase: "Recapitular reuniones y asignar elementos de acción para la mejora del servicio.", prompt: "En Teams, resume los puntos clave de la reunión de estrategia de servicio al cliente de la semana pasada, destacando las decisiones tomadas sobre la reducción del tiempo de espera y los próximos pasos para el equipo de atención al cliente.", type: "Alineación" },
-                { task: "Generación de Contenido", useCase: "Crear borradores de folletos o contenido web para nuevos productos.", prompt: "En Word, redacta un borrador de folleto digital para nuestro nuevo producto de cuenta de ahorros de alto rendimiento, destacando las características clave y los beneficios para el cliente, utilizando un tono claro y atractivo.", type: "Comunicación" }
-            ]
-        },
-        "Banca Corporativa": {
-            title: "Banca Corporativa",
-            challenge: "Gestiona transacciones complejas, grandes riesgos y estrictos requisitos regulatorios, integrando el cumplimiento en la tecnología y mejorando la ciberseguridad estratégica.",
-            chartData: { 'Redacción': 2, 'Análisis': 1, 'Regulación': 1, 'Preparación': 1 },
-            prompts: [
-                 { task: "Redacción de Propuestas", useCase: "Estructurar propuestas complejas para clientes.", prompt: "En Word, redacta una propuesta integral para un cliente para una facilidad de préstamo sindicado, incorporando los términos clave de la hoja de términos adjunta y destacando nuestras ventajas competitivas. Asegura un tono profesional y persuasivo.", type: "Redacción" },
-                 { task: "Análisis de Mercado", useCase: "Resumir tendencias de la industria y su impacto.", prompt: "En Teams, resume los hallazgos clave de la reciente reunión de perspectivas económicas e identifica los posibles impactos en nuestra cartera de préstamos corporativos. Redacta un resumen ejecutivo en Outlook para el Jefe de Banca Corporativa.", type: "Análisis" },
-                 { task: "Revisión Regulatoria", useCase: "Automatizar verificaciones de cumplimiento y ajustes de sistemas.", prompt: "Utilizando la actualización regulatoria adjunta, identifica todos los cambios relacionados con la presentación de informes de transacciones transfronterizas para clientes corporativos y redacta un memorándum que resuma los ajustes de sistema requeridos para el departamento de TI.", type: "Regulación" },
-                 { task: "Preparación de Reuniones", useCase: "Compilar información relevante y puntos de discusión.", prompt: "En Outlook, resume los puntos clave de la correspondencia por correo electrónico con [Nombre del Cliente/Empresa] durante los últimos seis meses y sugiere tres preguntas clave para discutir en nuestra próxima reunión.", type: "Preparación" },
-                 { task: "Generación de Contratos", useCase: "Borrar cláusulas contractuales estándar o adendas.", prompt: "En Word, redacta una cláusula de confidencialidad para un nuevo acuerdo de servicio, asegurando que cumpla con nuestras políticas internas y la legislación de protección de datos.", type: "Redacción" }
-            ]
-        },
-        "Gestión de Riesgos": {
-            title: "Gestión de Riesgos",
-            challenge: "Navega por requisitos regulatorios complejos, mejora la calidad de los datos y adáptate rápidamente a las condiciones del mercado para una identificación y mitigación proactiva de riesgos.",
-            chartData: { 'Análisis': 2, 'Informes': 1, 'Monitoreo': 1, 'Auditoría': 1 },
-            prompts: [
-                { task: "Evaluación de Riesgo de Crédito", useCase: "Resumir datos de cartera de préstamos e identificar tendencias de riesgo.", prompt: "En Excel, analiza los datos de impago de préstamos adjuntos de los últimos dos trimestres e identifica las 5 principales industrias con riesgo de crédito creciente. Genera un resumen conciso de tus hallazgos.", type: "Análisis" },
-                { task: "Monitoreo de Tendencias", useCase: "Identificar la volatilidad del mercado y sus implicaciones.", prompt: "En Teams, resume la discusión de la última reunión del comité de riesgo de mercado, destacando las principales preocupaciones sobre las fluctuaciones de las tasas de interés y los elementos de acción para el equipo de inversión.", type: "Monitoreo" },
-                { task: "Informes de Riesgo Operacional", useCase: "Redactar informes de incidentes y evaluaciones de vulnerabilidades.", prompt: "En Word, redacta un informe de evaluación de riesgo operacional para el nuevo proceso de incorporación digital, centrándote en los posibles puntos de error humano y las vulnerabilidades del sistema, haciendo referencia a nuestras directrices operacionales internas.", type: "Informes" },
-                { task: "Preparación para Auditorías", useCase: "Compilar y resumir información para auditorías regulatorias.", prompt: "En Word, compila un resumen de todos los controles de ciberseguridad implementados en el último año, basándote en los informes de auditoría internos y los documentos de política de TI, para la próxima auditoría de cumplimiento.", type: "Auditoría" },
-                { task: "Análisis de Riesgo de Liquidez", useCase: "Evaluar la disponibilidad de fondos y los escenarios de estrés.", prompt: "En Excel, simula un escenario de estrés de retirada masiva de depósitos y calcula el impacto en nuestra liquidez en 30, 60 y 90 días, basándote en los datos de balance adjuntos. Luego, resume los hallazgos clave en un correo electrónico para el equipo de tesorería.", type: "Análisis" }
-            ]
-        },
-        "Cumplimiento": {
-            title: "Cumplimiento",
-            challenge: "Navega por paisajes regulatorios complejos y cambiantes con agilidad, gestionando los desafíos de recursos y asegurando el cumplimiento transfronterizo y de privacidad de datos.",
-            chartData: { 'Análisis': 1, 'Redacción': 1, 'Formación': 1, 'Monitoreo': 2 },
-            prompts: [
-                { task: "Análisis de Actualizaciones", useCase: "Resumir nuevas leyes y sus implicaciones.", prompt: "Utilizando el aviso de FinCEN adjunto, resume los cambios clave en los requisitos de informes de AML y redacta un memorándum interno para las partes interesadas relevantes que describa las acciones inmediatas requeridas.", type: "Análisis" },
-                { task: "Redacción de Políticas", useCase: "Crear directrices internas y procedimientos de cumplimiento.", prompt: "En Word, redacta una nueva política de privacidad de datos para la información del cliente, asegurando el cumplimiento de GDPR y las regulaciones bancarias locales, basándote en los documentos de política existentes en SharePoint.", type: "Redacción" },
-                { task: "Preparación de Auditorías", useCase: "Compilar documentación y resúmenes para auditorías.", prompt: "En Teams, resume las decisiones clave y los elementos de acción de nuestra última reunión de revisión de auditoría interna, centrándose en las áreas de incumplimiento, y asigna tareas de seguimiento a los equipos responsables.", type: "Monitoreo" },
-                { task: "Formación en Cumplimiento", useCase: "Desarrollar materiales de formación sobre nuevas regulaciones.", prompt: "En PowerPoint, crea una presentación de formación sobre la Ley de Secreto Bancario (BSA) para nuevos empleados, destacando los requisitos clave de informes y las señales de alerta de lavado de dinero.", type: "Formación" },
-                { task: "Monitoreo de Comunicaciones", useCase: "Identificar riesgos de cumplimiento en las comunicaciones internas.", prompt: "En Outlook, resume los puntos clave de este hilo de correo electrónico sobre un nuevo producto de inversión, identificando cualquier declaración que pueda requerir una revisión de cumplimiento adicional.", type: "Monitoreo" }
-            ]
-        },
-        "Recursos Humanos": {
-            title: "Recursos Humanos",
-            challenge: "Optimiza la gestión del talento, reduce las altas tasas de rotación y mejora el bienestar de los empleados automatizando tareas administrativas y enfocándose en iniciativas estratégicas.",
-            chartData: { 'Redacción': 2, 'Análisis': 2, 'Comunicación': 1 },
-            prompts: [
-                { task: "Reclutamiento", useCase: "Redactar descripciones de puestos de trabajo y materiales de contratación.", prompt: "En Word, redacta una descripción de puesto para una posición de 'Analista de Crédito Senior', enfatizando las habilidades analíticas y el conocimiento regulatorio, basándote en el perfil de puesto adjunto y los puntos de referencia de la industria.", type: "Redacción" },
-                { task: "Compromiso del Empleado", useCase: "Resumir comentarios de encuestas y sugerir iniciativas.", prompt: "En Teams, resume los temas clave y las preocupaciones recurrentes de los resultados de la reciente encuesta de compromiso de los empleados, y sugiere tres iniciativas accionables para mejorar el equilibrio entre la vida laboral y personal.", type: "Análisis" },
-                { task: "Capacitación y Desarrollo", useCase: "Crear materiales de capacitación y rutas de aprendizaje personalizadas.", prompt: "En PowerPoint, crea una presentación de diapositivas para una nueva sesión de incorporación de empleados, incluyendo secciones sobre la cultura de la empresa, políticas clave y beneficios, extrayendo información del manual de RRHH.", type: "Redacción" },
-                { task: "Comunicación Interna", useCase: "Redactar anuncios de políticas o iniciativas de bienestar.", prompt: "En Outlook, redacta un correo electrónico a todos los empleados anunciando nuestra nueva iniciativa de bienestar, destacando los recursos disponibles para el apoyo a la salud mental y física.", type: "Comunicación" },
-                { task: "Análisis de Datos de RRHH", useCase: "Identificar tendencias en la rotación o el agotamiento de los empleados.", prompt: "En Excel, analiza los datos de rotación de empleados del último año por departamento y grupo de edad, e identifica los patrones o anomalías que puedan indicar problemas de agotamiento.", type: "Análisis" }
-            ]
-        },
-        "TI": {
-            title: "Tecnología de la Información",
-            challenge: "Moderniza la infraestructura, mejora la ciberseguridad y gestiona sistemas heredados, garantizando al mismo tiempo el cumplimiento normativo y la privacidad de los datos.",
-            chartData: { 'Documentación': 1, 'Seguridad': 2, 'Planificación': 1, 'Análisis': 1 },
-            prompts: [
-                { task: "Respuesta a Incidentes", useCase: "Resumir informes de incidentes y acciones recomendadas.", prompt: "En Teams, resume los hallazgos clave y las acciones recomendadas de la reciente reunión de investigación de incidentes de ciberseguridad, y asigna tareas de seguimiento al equipo de seguridad de la red.", type: "Seguridad" },
-                { task: "Documentación del Sistema", useCase: "Generar documentación técnica para sistemas y APIs.", prompt: "En Word, genera documentación técnica detallada para la nueva integración de API, incluyendo puntos finales, métodos de autenticación y manejo de errores, basándote en las especificaciones de diseño adjuntas.", type: "Documentación" },
-                { task: "Políticas de Seguridad", useCase: "Redactar directrices y protocolos de seguridad.", prompt: "En Outlook, redacta un correo electrónico a todos los empleados recordándoles la política actualizada de concientización sobre phishing, destacando los cambios clave y las mejores prácticas para identificar correos electrónicos sospechosos.", type: "Seguridad" },
-                { task: "Planificación de Proyectos", useCase: "Resumir el estado del proyecto para la modernización de sistemas.", prompt: "En Teams, resume el estado actual del proyecto de modernización del sistema de préstamos heredado, destacando los principales obstáculos y los próximos hitos para el equipo de desarrollo.", type: "Planificación" },
-                { task: "Análisis de Registros", useCase: "Identificar anomalías en los registros del sistema.", prompt: "En Excel, analiza los registros de acceso del servidor del último mes e identifica cualquier patrón de acceso inusual que pueda indicar una posible brecha de seguridad. Genera un resumen de los hallazgos.", type: "Análisis" }
-            ]
-        },
-        "Marketing": {
-            title: "Marketing",
-            challenge: "Impulsa la interacción y la coherencia de la marca, superando el estricto cumplimiento normativo y la mercantilización de productos para crear campañas efectivas y diferenciadas.",
-            chartData: { 'Creación de Contenido': 2, 'Análisis': 2, 'Estrategia': 1 },
-            prompts: [
-                { task: "Creación de Contenido", useCase: "Redactar textos publicitarios y materiales de campaña.", prompt: "En Word, redacta tres variaciones de un titular y un texto para una campaña publicitaria digital que promocione nuestro nuevo fondo de inversión sostenible, dirigido a millennials conscientes del medio ambiente. Asegura un tono profesional e inspirador, e incluye una clara llamada a la acción.", type: "Creación de Contenido" },
-                { task: "Investigación de Mercado", useCase: "Analizar datos de investigación y generar presentaciones.", prompt: "En Excel, analiza los datos de investigación de mercado adjuntos sobre las preferencias bancarias de la Generación Z e identifica las ideas clave para el desarrollo de productos. Luego, redacta una presentación resumida en PowerPoint para el equipo de producto.", type: "Análisis" },
-                { task: "Mensajes de Marca", useCase: "Garantizar la coherencia de la marca en todas las comunicaciones.", prompt: "En Outlook, redacta un correo electrónico a nuestros clientes de alto patrimonio existente anunciando un nuevo servicio de gestión de patrimonio, manteniendo nuestra voz de marca premium establecida y destacando los beneficios exclusivos.", type: "Creación de Contenido" },
-                { task: "Análisis de la Competencia", useCase: "Resumir estrategias de la competencia y puntos clave.", prompt: "En Teams, resume los puntos clave de la última revisión de la competencia, centrándote en sus estrategias de marketing digital para productos de inversión, y sugiere áreas donde podemos diferenciarnos.", type: "Análisis" },
-                { task: "Generación de Ideas", useCase: "Lluvia de ideas para nuevas campañas o contenido.", prompt: "En Copilot Chat, genera cinco ideas innovadoras para una campaña de redes sociales que promueva la educación financiera entre los jóvenes, utilizando un lenguaje atractivo y relevante.", type: "Estrategia" }
-            ]
-        },
-        "Legal": {
-            title: "Legal",
-            challenge: "Optimiza la debida diligencia, la gestión de contratos y la respuesta a un panorama regulatorio en evolución, manejando una gran carga de trabajo con recursos limitados.",
-            chartData: { 'Revisión': 1, 'Análisis': 1, 'Litigios': 1, 'Redacción': 2 },
-            prompts: [
-                { task: "Revisión de Contratos", useCase: "Resumir términos contractuales e identificar desviaciones.", prompt: "En Word, revisa el borrador adjunto del acuerdo con el proveedor e identifica cualquier cláusula que se desvíe de nuestros términos legales estándar, específicamente en lo que respecta a la responsabilidad y la privacidad de los datos. Sugiere revisiones para alinearlo con nuestra plantilla.", type: "Revisión" },
-                { task: "Análisis Regulatorio", useCase: "Identificar cambios regulatorios y sus implicaciones.", prompt: "En Outlook, resume las implicaciones legales clave de la reciente sentencia judicial sobre la notificación de violación de datos, y redacta un correo electrónico al Jefe de Cumplimiento describiendo las actualizaciones de política necesarias.", type: "Análisis" },
-                { task: "Apoyo en Litigios", useCase: "Extraer argumentos clave y sugerir contraargumentos.", prompt: "En Teams, resume los argumentos clave presentados por la parte contraria en el caso XYZ contra el Banco, basándote en la transcripción de la reunión, y sugiere tres contraargumentos para que nuestro equipo legal los considere.", type: "Litigios" },
-                { task: "Debida Diligencia Legal", useCase: "Compilar y resumir información relevante para la debida diligencia.", prompt: "En Word, compila un resumen ejecutivo de los hallazgos de la debida diligencia legal para la adquisición propuesta de la empresa ABC, centrándote en los riesgos regulatorios y contractuales.", type: "Redacción" },
-                { task: "Redacción de Memorandos", useCase: "Borrar borradores iniciales de memorandos o asesoramiento legal.", prompt: "En Word, redacta un memorando legal interno sobre las implicaciones de la nueva ley de protección al consumidor para nuestros productos de banca minorista, incluyendo un análisis de riesgos y recomendaciones de cumplimiento.", type: "Redacción" }
-            ]
-        },
-        "Finanzas": {
-            title: "Finanzas",
-            challenge: "Mejora la previsión financiera, satisface las demandas de informes en tiempo real y evoluciona hacia un rol más estratégico a medida que se automatizan las tareas tradicionales.",
-            chartData: { 'Informes': 1, 'Previsión': 1, 'Análisis': 2, 'Presentaciones': 1 },
-            prompts: [
-                { task: "Informes Financieros", useCase: "Generar informes trimestrales y resúmenes de datos.", prompt: "En Excel, analiza los estados financieros del cuarto trimestre adjuntos e identifica los principales impulsores del crecimiento de los ingresos y la reducción de costos. Genera un resumen de estas observaciones.", type: "Informes" },
-                { task: "Presupuesto y Previsión", useCase: "Crear resúmenes de presupuesto y proyecciones financieras.", prompt: "En Word, redacta un resumen ejecutivo de la propuesta de presupuesto anual, destacando las asignaciones clave para inversiones en tecnología y el ROI proyectado, basándote en la hoja de cálculo de presupuesto adjunta.", type: "Previsión" },
-                { task: "Gestión del Flujo de Caja", useCase: "Analizar tendencias de liquidez e identificar posibles déficits.", prompt: "En Teams, resume la discusión de la última reunión de revisión del flujo de caja, identificando cualquier posible déficit en los próximos seis meses y enumerando los elementos de acción para que el equipo de tesorería mitigue el riesgo.", type: "Análisis" },
-                { task: "Análisis de Inversiones", useCase: "Evaluar el rendimiento de la cartera y las oportunidades.", prompt: "En Excel, calcula el rendimiento anualizado de nuestra cartera de inversiones durante los últimos tres años y compara con los puntos de referencia de la industria. Luego, resume los hallazgos clave para el comité de inversiones.", type: "Análisis" },
-                { task: "Preparación de Presentaciones", useCase: "Crear diapositivas para reuniones de inversores o de la junta.", prompt: "En PowerPoint, crea una presentación para la próxima reunión de la junta directiva, destacando los resultados financieros del último trimestre, las perspectivas para el próximo año y las principales iniciativas estratégicas.", type: "Presentaciones" }
-            ]
-        }
-    };
+    <footer class='bg-gray-800 text-white'>
+        <div class='container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center'>
+            <p>Propuesta Multiagente para Speech Analytics. Diseñado para el éxito.</p>
+        </div>
+    </footer>
     
-    const implementationData = [
-        { title: "Gobernanza de Datos y Seguridad", content: "Implementar controles de acceso granulares y políticas claras para la privacidad y seguridad de los datos. Aprovechar las características de protección de datos empresariales de Copilot para garantizar el cumplimiento de las regulaciones bancarias y la soberanía de los datos." },
-        { title: "Capacitación y Gestión del Cambio", content: "Desarrollar programas de capacitación basados en roles, incluyendo talleres prácticos de ingeniería de prompts. Fomentar una cultura de 'primero en IA' donde los empleados identifiquen proactivamente oportunidades para automatizar y optimizar su trabajo." },
-        { title: "Medición del Impacto y el ROI", content: "Establecer métricas claras que vayan más allá de la productividad individual. Vincular el uso de Copilot con KPIs de negocio como la retención de clientes, los ciclos de lanzamiento de productos y las puntuaciones de cumplimiento para demostrar un ROI estratégico." },
-        { title: "Aprovechamiento de Copilot Studio", content: "Explorar la creación de agentes de IA personalizados para flujos de trabajo bancarios únicos y propietarios, como la originación de préstamos o la detección de fraude. Esto permite una automatización más profunda y una ventaja competitiva difícil de replicar." }
-    ];
-
-    const departmentNav = document.getElementById('department-nav');
-    const departmentTitle = document.getElementById('department-title');
-    const departmentChallenge = document.getElementById('department-challenge');
-    const promptLibrary = document.getElementById('prompt-library');
-    // Se inicializa `accordionContainer` a null para que se cree si no existe,
-    // o se use la referencia existente si ya se había inicializado en un ciclo anterior.
-    let accordionContainer = document.getElementById('accordion-container'); 
-    
-    let chart;
-
-    // Función para inicializar el gráfico de barras
-    function initChart() {
-        const ctx = document.getElementById('departmentChart').getContext('2d');
-        chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Número de Prompts por Tipo de Tarea',
-                    data: [],
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.7)',
-                        'rgba(245, 158, 11, 0.7)',
-                        'rgba(16, 185, 129, 0.7)',
-                        'rgba(239, 68, 68, 0.7)',
-                        'rgba(139, 92, 246, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(59, 130, 246, 1)',
-                        'rgba(245, 158, 11, 1)',
-                        'rgba(16, 185, 129, 1)',
-                        'rgba(239, 68, 68, 1)',
-                        'rgba(139, 92, 246, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y', // Hace el gráfico de barras horizontal
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.x !== null) {
-                                    label += context.parsed.x;
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+ 
+            
+            const agentData = [
+				{ name: 'Soporte a Usuarios', icon: '💬', func: 'Interfaz para usuarios sin acceso a dashboards para consultas.', inputs: 'Preguntas en lenguaje natural o formularios.', outputs: 'Respuestas estructuradas, informes de otros agentes.'
+				},
+				{ name: 'Calidad de Datos', icon: '🛡️', func: 'Detectar errores en transcripción, categorización o carga de datos.', inputs: 'Logs del sistema de speech, volúmenes esperados vs. reales.', outputs: 'Alertas de anomalías, informes de calidad.'
+				},
+                { name: 'KPIs de Speech', icon: '📊', func: 'Generar informes periódicos de rendimiento.', inputs: 'Datos de llamadas estructurados, configuración de KPIs.', outputs: 'Informes (PDF/Excel), notificaciones.' 
+				},
+                { name: 'Detección de Patrones', icon: '🔍', func: 'Identificar correlaciones y estacionalidades en motivos de llamada.', inputs: 'Históricos de llamadas categorizadas, timestamps, sentimiento, etiquetas.', outputs: 'Alertas, insights para analistas.' 
+				}, 
+                { name: 'Ranking de Agentes', icon: '🏆', func: 'Calcular rankings de gestores por métricas de desempeño.', inputs: 'Datos de llamadas por agente, KPIs definidos, metas.', outputs: 'Ranking ordenado, comparativas históricas.'
+				},
+                { name: 'Informes Proveedores', icon: '📄', func: 'Generar informes personalizados para proveedores (Intelica, Emergia).', inputs: 'Datos filtrados por proveedor, KPIs específicos.', outputs: 'Informes exportables y personalizados.'
+				},
+                { name: 'Nuevas Métricas', icon: '💡', func: 'Proponer y calcular nuevas métricas definidas por analistas.', inputs: 'Fórmulas o reglas definidas, datos base.', outputs: 'Nuevas columnas o indicadores, validación.'
+				}
+            ];
+ function renderAgentData(agents) {
+                const agentGrid = document.getElementById('agent-grid');
+ if (!agentGrid) return;
+                agentGrid.innerHTML = '';
+                agents.forEach(agent => {
+                    const agentCard = document.createElement('div');
+                    agentCard.className = 'card p-4 text-center cursor-pointer group relative'; 
+                    agentCard.innerHTML = `
+                   
+      <div class='text-4xl'>${agent.icon}</div>
+                        <div class='font-semibold mt-2 text-gray-800'>${agent.name}</div>
+                        <div class='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs bg-gray-800 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-left'>
+                        
+     <p class='font-bold'>${agent.func}</p>
+                            <p class='mt-1'><b class='text-teal-300'>Entradas:</b> ${agent.inputs}</p>
+                            <p class='mt-1'><b class='text-teal-300'>Salidas:</b> ${agent.outputs}</p>
+                        </div>
+         
+            `;
+                    agentGrid.appendChild(agentCard);
+ });
             }
-        });
-    }
 
-    // Función para actualizar la vista del departamento
-    function updateView(departmentKey) {
-        const data = promptData[departmentKey];
-        if (!data) return; // Si no hay datos para la clave, salir
+            renderAgentData(agentData);
+ // Lógica de Pestañas (Tabs)
+            const tabButtons = document.querySelectorAll('.tab-button');
+ const tabContents = document.querySelectorAll('.tab-content');
 
-        // Actualiza el título y el desafío del departamento
-        departmentTitle.textContent = data.title;
-        departmentChallenge.textContent = data.challenge;
-        
-        // Limpia y renderiza las tarjetas de prompts
-        promptLibrary.innerHTML = '';
-        data.prompts.forEach(p => {
-            const card = document.createElement('div');
-            card.className = "prompt-card bg-white rounded-xl shadow-md p-6 flex flex-col";
-            card.innerHTML = `
-                <div class="flex-grow">
-                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full mb-2">${p.type}</span>
-                    <h4 class="text-lg font-bold text-gray-800 mb-1">${p.task}</h4>
-                    <p class="text-sm text-gray-600 mb-4">${p.useCase}</p>
-                    <p class="text-sm bg-gray-50 p-3 rounded-md text-gray-700 font-mono">“${p.prompt}”</p>
-                </div>
-                <button class="copy-btn mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-300">
-                    Copiar Prompt
-                </button>
-            `;
-            promptLibrary.appendChild(card);
-        });
-
-        // Añade event listeners a los botones de copiar
-        document.querySelectorAll('.copy-btn').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const promptText = event.target.closest('.prompt-card').querySelector('.font-mono').textContent.replace(/“|”/g, '');
-                // Utiliza document.execCommand para copiar al portapapeles debido a restricciones de iframe
-                const textarea = document.createElement('textarea');
-                textarea.value = promptText;
-                document.body.appendChild(textarea);
-                textarea.select();
-                try {
-                    document.execCommand('copy');
-                    button.textContent = '¡Copiado!';
-                    setTimeout(() => {
-                        button.textContent = 'Copiar Prompt';
-                    }, 2000);
-                } catch (err) {
-                    console.error('No se pudo copiar el texto: ', err);
-                }
-                document.body.removeChild(textarea);
-            });
-        });
-
-        // Actualiza la clase 'active' para los botones de navegación
-        document.querySelectorAll('.nav-button').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.key === departmentKey);
-        });
-        
-        // Actualiza los datos del gráfico
-        const chartData = data.chartData || {};
-        chart.data.labels = Object.keys(chartData);
-        chart.data.datasets[0].data = Object.values(chartData);
-        chart.update();
-    }
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => {
     
-    // Función para configurar el acordeón de guía de implementación
-    function setupAccordion() {
-        // Asegúrate de que el contenedor del acordeón existe
-        if (!accordionContainer) {
-            const newAccordionContainer = document.createElement('div');
-            newAccordionContainer.id = 'accordion-container';
-            newAccordionContainer.className = "mt-16"; // Clases Tailwind para margen superior
-            document.querySelector('main').appendChild(newAccordionContainer);
-            // Actualiza la referencia si se creó
-            accordionContainer = document.getElementById('accordion-container');
-        } else {
-            accordionContainer.innerHTML = ''; // Limpiar si ya existía
-        }
+                     content.classList.remove('active');
+                        // Reset simulation when changing tabs
+                        const simulationContainer = content.querySelector('.simulation-container');
+                        
+ if (simulationContainer) {
+                            simulationContainer.querySelectorAll('.simulation-step').forEach(step => step.classList.remove('active'));
+                            const chartCanvas = simulationContainer.querySelector('.simulation-chart');
+                            if (chartCanvas) {
+       
+                          const existingChart = Chart.getChart(chartCanvas);
+                                if (existingChart) existingChart.destroy();
+ }
+                        }
+                    });
+ // Add active to the clicked button and its corresponding content
+                    const targetTab = button.dataset.tabTarget;
+ document.getElementById(targetTab).classList.add('active');
+                    button.classList.add('active');
 
-        const accordionTitle = document.createElement('h3');
-        accordionTitle.className = "text-2xl font-semibold text-center text-gray-700 mb-6";
-        accordionTitle.textContent = "Guía de Implementación y Mejores Prácticas";
-        accordionContainer.appendChild(accordionTitle);
-
-        implementationData.forEach((item, index) => {
-            const accordionItem = document.createElement('div');
-            accordionItem.className = "border border-gray-200 rounded-lg mb-2";
-            accordionItem.innerHTML = `
-                <button class="accordion-header flex justify-between items-center w-full p-4 text-left font-semibold text-lg text-gray-700 bg-white hover:bg-gray-50 rounded-lg focus:outline-none">
-                    ${item.title}
-                    <svg class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div class="accordion-content p-4 text-gray-600 hidden">
-                    <p>${item.content}</p>
-                </div>
-            `;
-            accordionContainer.appendChild(accordionItem);
-        });
-
-        // Añade event listeners para el acordeón
-        document.querySelectorAll('.accordion-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const content = header.nextElementSibling;
-                const svg = header.querySelector('svg');
-
-                // Cierra otros acordeones abiertos
-                document.querySelectorAll('.accordion-content').forEach(otherContent => {
-                    if (otherContent !== content && !otherContent.classList.contains('hidden')) {
-                        otherContent.classList.add('hidden');
-                        otherContent.previousElementSibling.classList.remove('active');
-                        otherContent.previousElementSibling.querySelector('svg').classList.remove('rotate-180');
-                    }
+                    // If the active tab is KPIs, ensure the dashboard charts are rendered
+                    if (targetTab === 'kpis') {
+                        renderDashboardCharts(document.getElementById('month-filter').value);
+ }
                 });
-
-                // Abre o cierra el acordeón clicado
-                content.classList.toggle('hidden');
-                header.classList.toggle('active');
-                svg.classList.toggle('rotate-180');
             });
+ // Lógica de Simulación
+            document.querySelectorAll('.start-simulation-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const targetTabId = e.target.dataset.targetTab;
+                    const simulationContainer = document.getElementById(targetTabId).querySelector('.simulation-container');
+                  
+    runSimulation(simulationContainer, targetTabId);
+                });
+            });
+ function runSimulation(container, targetTabId) {
+                const steps = container.querySelectorAll('.simulation-step');
+ steps.forEach(step => step.classList.remove('active')); // Reset all steps
+
+                const chartCanvas = container.querySelector('.simulation-chart');
+ if (chartCanvas) {
+                    const existingChart = Chart.getChart(chartCanvas);
+ if (existingChart) {
+                        existingChart.destroy();
+ // Destroy previous chart instance
+                    }
+                }
+
+                let delay = 0;
+ steps.forEach((step, index) => {
+                    setTimeout(() => {
+                        step.classList.add('active');
+                        
+                        const stepChartCanvas = 
+ step.querySelector('.simulation-chart');
+                        if (stepChartCanvas && targetTabId === 'patrones') { // Only for 'patrones' tab
+                            new Chart(stepChartCanvas.getContext('2d'), {
+                                type: 'bar',
+  
+                                data: {
+                                    labels: ['Problemas Banca Online', 'Consultas Hipotecas'],
+                            
+         datasets: [{
+                                        label: 'Aumento vs Mayo',
+                                        data: [35, 22],
+      
+                                    backgroundColor: ['#ee9b00', '#005f73'],
+                                        borderColor: ['#ca6702', '#0a9396'],
+                      
+                   borderWidth: 1
+                                    }]
+                                },
+             
+                    options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+      
+                                plugins: { legend: { display: false } },
+                                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Aumento (%)' } } }
+            
+                     }
+                            });
+ }
+                    }, delay);
+ delay += 2000; // 1 second delay between steps
+                });
+ }
+
+            // Dashboard Chart Logic for KPIs tab
+            let motivosChartInstance, rendimientoChartInstance;
+ const chartData = {
+                mayo: {
+                    motivos: { labels: ['Banca Online', 'Hipotecas', 'Tarjetas', 'Transferencias'], data: [15, 15, 40, 30] },
+                    rendimiento: { labels: ['Pau', 'Mario', 'Luis', 'Raquel'], data: [55, 90, 78, 80] }
+               
+  },
+                junio: {
+                    motivos: { labels: ['Banca Online', 'Hipotecas', 'Tarjetas', 'Transferencias'], data: [35, 22, 30, 13] },
+                    rendimiento: { labels: ['Pau', 'Mario', 'Luis', 'Raquel'], data: [70, 75, 97, 65] }
+                }
+ 
+            };
+ function renderDashboardCharts(month) {
+                if (motivosChartInstance) motivosChartInstance.destroy();
+ if (rendimientoChartInstance) rendimientoChartInstance.destroy();
+                
+                const data = chartData[month];
+
+                const motivosCtx = document.getElementById('motivosChart')?.getContext('2d');
+ if(motivosCtx) {
+                    motivosChartInstance = new Chart(motivosCtx, {
+                        type: 'doughnut',
+                        data: {
+                         
+    labels: data.motivos.labels,
+                            datasets: [{
+                                label: 'Motivos de Llamada',
+                                
+ data: data.motivos.data,
+                                backgroundColor: ['#005f73', '#0a9396', '#94d2bd', '#e9d8a6'],
+                                hoverOffset: 4
+                            }]
+  
+                       },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+                    });
+ }
+
+                const rendimientoCtx = document.getElementById('rendimientoChart')?.getContext('2d');
+ if(rendimientoCtx) {
+                    rendimientoChartInstance = new Chart(rendimientoCtx, {
+                        type: 'bar',
+                        data: {
+                         
+    labels: data.rendimiento.labels,
+                            datasets: [{
+                                label: '% de Resolución',
+                                
+ data: data.rendimiento.data,
+                                backgroundColor: '#94d2bd',
+                                borderColor: '#0a9396',
+                                borderWidth: 
+ 1
+                            }]
+                        },
+                        options: {
+                       
+      responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { 
+ y: { beginAtZero: true, max: 100 } }
+                        }
+                    });
+ }
+            }
+
+            document.getElementById('month-filter')?.addEventListener('change', (e) => {
+                renderDashboardCharts(e.target.value);
+            });
+ // Initial render for the dashboard, only if the KPIs tab is active by default
+            if(document.getElementById('kpis').classList.contains('active')) {
+               renderDashboardCharts('mayo');
+ }
         });
-    }
-
-
-    // --- Inicialización al cargar el DOM ---
-
-    // Inicializa el gráfico
-    initChart();
-
-    let retailBankingButton = null; // Variable para almacenar el botón de Banca Particulares
-
-    // Genera los botones de navegación de departamento
-    for (const key in promptData) {
-        const button = document.createElement('button');
-        button.className = "nav-button bg-white text-gray-700 font-semibold py-2 px-4 rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50";
-        button.dataset.key = key;
-        button.textContent = promptData[key].title;
-        button.addEventListener('click', () => updateView(key));
-        departmentNav.appendChild(button);
-
-        // Si es el botón de "Banca Particulares", lo guardamos
-        if (key === 'Banca Particulares') {
-            retailBankingButton = button;
-        }
-    }
-    
-    // Configura el acordeón de implementación
-    //setupAccordion();
-
-    // Simula un clic en el botón "Banca Particulares" para seleccionarlo por defecto
-    if (retailBankingButton) {
-        retailBankingButton.click();
-    } else {
-        // Fallback: Si por alguna razón no se encontró el botón, se intenta actualizar la vista directamente.
-        // Esto es poco probable si los datos y la lógica son consistentes.
-        updateView('Banca Particulares');
-    }
-});
-</script>
+    </script>
 </body>
 </html>
